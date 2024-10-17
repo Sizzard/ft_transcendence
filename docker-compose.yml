@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./py/pong_api:/app
+    environment:
+      - DEBUG=1
+  nginx:
+      image: nginx:latest
+      ports:
+        - "8080:80"
+      volumes:
+        - ./static:/usr/share/nginx/html/static
+      depends_on:
+        - web
