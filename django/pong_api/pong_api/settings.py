@@ -136,8 +136,8 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOW_ALL_ORIGINS = True
 
 # CORS_ALLOWED_ORIGINS = [
-#     "http://http://made-f0Ar3s2.clusters.42paris.fr:8080",
-#     "http://made-f0Ar3s2.clusters.42paris.fr:8080"
+#     "http://http://localhost:8080",
+#     "http://localhost:8080"
 # ]
 
 ALLOWED_HOSTS = ['*']

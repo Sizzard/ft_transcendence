@@ -4,9 +4,9 @@ const OGhtml = app.innerHTML;
 
 class Player {
     constructor() {
-        this.APIRoot = "http://made-f0Ar3s2.clusters.42paris.fr:8000/api/"
+        this.APIRoot = "http://localhost:8000/api/"
         this.GetGameAPI =  this.APIRoot.concat("get_game_state/1/");
-        this.pInput = "http://made-f0Ar3s2.clusters.42paris.fr:8000/api/player1/";
+        this.pInput = "http://localhost:8000/api/player1/";
         this.pID = "1";
         this.gID = "1";
     }
@@ -57,7 +57,7 @@ function choosePlayer() {
 }
 
 function launchGame() {
-    fetch("http://made-f0Ar3s2.clusters.42paris.fr:8000/api/create_game/",{
+    fetch("http://localhost:8000/api/create_game/",{
         method: "POST",
     })
     .then((response) => response.json())

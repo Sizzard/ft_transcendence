@@ -40,7 +40,7 @@ window.addEventListener('keyup', (event) => {
 })
 
 setInterval(function() {
-    let FetchUrl = "http://made-f0Ar3s2.clusters.42paris.fr:8000/api/get_game_state/1/";
+    let FetchUrl = "http://localhost:8000/api/get_game_state/1/";
     fetch(FetchUrl)
         .then(response => response.json())
         .then(data => {

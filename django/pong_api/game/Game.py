@@ -85,9 +85,9 @@ class Game:
             if current_time - self.bot.last_time >= 1:
                 self.bot_comportement()
                 self.bot.last_time = current_time
-            if self.p2_pos_y > self.bot.impact_pos_y:
+            if self.p2_pos_y > self.bot.impact_pos_y and self.p2_pos_y - PAD_SPEED > 0:
                 self.p2_pos_y -= PAD_SPEED
-            elif self.p2_pos_y < self.bot.impact_pos_y:
+            elif self.p2_pos_y < self.bot.impact_pos_y and self.p2_pos_y + PAD_SPEED < HEIGHT - PAD_HEIGHT:
                 self.p2_pos_y += PAD_SPEED
             
     async def calculate_rebounce(self):

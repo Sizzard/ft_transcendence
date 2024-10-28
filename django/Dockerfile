@@ -2,11 +2,11 @@ FROM python:latest
 
 WORKDIR /app
 
-COPY ./daphne/requirements.txt /app/
+COPY ./django/requirements.txt /app/
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY ./daphne/pong_api/ /app/
+COPY ./django/pong_api/ /app/
 
 RUN python3 -m pip install -r requirements.txt
 

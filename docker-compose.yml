@@ -1,14 +1,14 @@
 version: '3.8'
 
 services:
-  web:
+  django:
     build:
       context: .
-      dockerfile: ./daphne/Dockerfile
+      dockerfile: ./django/Dockerfile
     ports:
       - "8000:8000"
     volumes:
-      - ./daphne/pong_api:/app
+      - ./django/pong_api:/app
     environment:
       - DEBUG=1
   nginx:
@@ -20,4 +20,4 @@ services:
     volumes:
       - ./static:/usr/share/nginx/html/static
     depends_on:
-      - web
+      - django
