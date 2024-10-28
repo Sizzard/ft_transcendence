@@ -67,7 +67,7 @@ button {
     align-items: center;
 }
 
-.choosePlayerButton {
+.chooseGameButton {
     background-color: yellow;
     border-radius: 5px;
     color: black;
@@ -81,7 +81,7 @@ button {
     cursor: pointer;
 }
 
-.choosePlayerButton:hover {
+.chooseGameButton:hover {
     background-color: inherit;
 }
 

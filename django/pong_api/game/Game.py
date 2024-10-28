@@ -4,18 +4,17 @@ import asyncio
 import random
 import time
 
-BOT_BOOL = True
-
 class Bot:
-    def __init__(self,gameID):
+    def __init__(self,gameID,bot_bool):
         self.id = gameID
         self.last_time = time.time()
         self.last_speed = 0
         self.impact_pos_x = 0
         self.impact_pos_y = 0
+        self.bool = bot_bool
 
 class Game:
-    def __init__(self,gameID):
+    def __init__(self,gameID,bot_bool):
         self.id = gameID
         self.p1_pos_x = round(PAD_HEIGHT)
         self.p1_pos_y = round(HEIGHT/2-PAD_HEIGHT/2)
@@ -29,7 +28,11 @@ class Game:
         self.ball_pos_y = HEIGHT/2
         self.ball_speed_x = DEFAULT_BALL_SPEED
         self.ball_speed_y = DEFAULT_BALL_SPEED
-        self.bot = Bot(gameID)
+        self.bot = Bot(gameID,bot_bool)
+        game_inputs[gameID] = {
+            "player1_input": "idle",
+            "player2_input": "idle",
+        }
 
     def reset_ball(self, direction):
         self.ball_pos_x = WIDTH/2
@@ -69,19 +72,19 @@ class Game:
                 self.bot.impact_pos_y = -self.bot.impact_pos_y - PAD_HEIGHT
 
     def handle_player_inputs(self):
-        if game_inputs['player1_input'] == 'up' and self.p1_pos_y > 0 :
+        if game_inputs[self.id]['player1_input'] == 'up' and self.p1_pos_y > 0 :
             self.p1_pos_y -= PAD_SPEED
-        elif game_inputs['player1_input'] == 'down' and self.p1_pos_y < HEIGHT - PAD_HEIGHT:
+        elif game_inputs[self.id]['player1_input'] == 'down' and self.p1_pos_y < HEIGHT - PAD_HEIGHT:
             self.p1_pos_y += PAD_SPEED
 
         current_time = time.time()
 
-        if BOT_BOOL == False :
-            if game_inputs['player2_input'] == 'up' and self.p2_pos_y - PAD_SPEED > 0 :
+        if self.bot.bool == False :
+            if game_inputs[self.id]['player2_input'] == 'up' and self.p2_pos_y - PAD_SPEED > 0 :
                 self.p2_pos_y -= PAD_SPEED
-            elif game_inputs['player2_input'] == 'down' and self.p2_pos_y + PAD_SPEED < HEIGHT - PAD_HEIGHT:
+            elif game_inputs[self.id]['player2_input'] == 'down' and self.p2_pos_y + PAD_SPEED < HEIGHT - PAD_HEIGHT:
                 self.p2_pos_y += PAD_SPEED
-        elif BOT_BOOL == True :
+        elif self.bot.bool == True :
             if current_time - self.bot.last_time >= 1:
                 self.bot_comportement()
                 self.bot.last_time = current_time
