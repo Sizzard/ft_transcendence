@@ -9,6 +9,7 @@ services:
       - "8000:8000"
     volumes:
       - ./django/pong_api:/app
+    stop_grace_period: 1s
     environment:
       - DEBUG=1
   nginx:
@@ -19,5 +20,6 @@ services:
       - "8080:80"
     volumes:
       - ./static:/usr/share/nginx/html/static
+    stop_grace_period: 1s
     depends_on:
       - django
