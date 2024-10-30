@@ -2,37 +2,44 @@ const app = document.getElementById("app");
 
 const OGhtml = app.innerHTML;
 
-const ADRESS = "localhost"
+const ADRESS = "made-f0Ar1s4.clusters.42paris.fr"
 
 class Player {
-    constructor(pID) {
+    constructor() {
         this.APIRoot = "http://" + ADRESS + ":8000/api/"
-        this.pID = pID;
+        this.pID = this.requestPID();
         this.gID = "1";
         this.createGameAPI = this.APIRoot + "create_game/"
         this.getGameAPI =  this.APIRoot + "get_game_state/" + this.gID + "/";
-        this.pInput = this.APIRoot + "player" + pID + "/" + this.gID + "/";
+        this.pInput = this.APIRoot + "control/" + this.gID + "/" + this.pID + "/";
         this.createRoom = this.APIRoot + "create_room/";
         this.checkRoom = this.APIRoot + "check_room/" + this.gID + "/";
-        this.joinRoom =  this.APIRoot + "join_room/" + this.gID + "/";
+        this.joinRoom =  this.APIRoot + "join_room/" + this.gID + "/" + this.pID + "/";
+    }
+
+    requestPID() {
+        fetch(this.APIRoot + "request_pid/", {
+            method: 'POST',
+        })
+        .then(response => response.json())
+        .then(data => {
+            this.pID = data.player_id
+        });
     }
 
     setGameID(gameID) {
         this.gID = gameID;
-        this.getGameAPI =  this.APIRoot + "get_game_state/" + gameID + "/";
-        this.pInput = this.APIRoot + "player" + this.pID + "/" + this.gID + "/";
+        this.getGameAPI =  this.APIRoot + "get_game_state/" + this.gID + "/";
+        this.pInput = this.APIRoot + "control/" + this.gID + "/" + this.pID + "/";
         this.checkRoom = this.APIRoot + "check_room/" + this.gID + "/";
-        this.joinRoom =  this.APIRoot + "join_room/" + this.gID + "/";
-        this.createGameAPI = this.APIRoot + "create_game/" + gameID + "/";
+        this.joinRoom =  this.APIRoot + "join_room/" + this.gID + "/" + this.pID + "/";
+        this.createGameAPI = this.APIRoot + "create_game/" + this.gID + "/";
     }
 
-    setPlayerID(playerID) {
-        this.pID = playerID;
-        this.pInput = this.APIRoot + "player" + playerID + "/" + this.gID + "/";
-    }
 }
 
-const player = new Player('1'); 
+const player = new Player();
+const player2 = null;
 
 function displayHome() {
     app.innerHTML ='<h1 class="center">Accueil</h1> \
@@ -85,13 +92,15 @@ function roomLobby(room_id) {
                     </div> \
                     </div>`;
 
-    setInterval(function() {
+    let checkRoomInterval = setInterval(function() {
         fetch(player.checkRoom)
             .then(response => response.json())
             .then(data => {
                 console.log(data.room_status)
-                if (data.room_status == "OK")
+                if (data.room_status === "OK") {
+                    clearInterval(checkRoomInterval);
                     launchGameHTML();
+                }
             })
             .catch(error => console.error("Erreur lors de la récupération des données :", error));
     }, 1000);
@@ -99,12 +108,25 @@ function roomLobby(room_id) {
 }
 
 function joinRoomFetch(room_id) {
-    player.setGameID(room_id)
-    fetch(player.joinRoom, {
-        method: "POST",
-        "room_id": room_id,
-    })
-    roomLobby(room_id);
+    player.setGameID(room_id);
+        return fetch(player.joinRoom, {
+            method: "POST",
+            "room_id": room_id,
+        })
+        .then(response => {
+            if (response.status === 200)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        })
+        .catch(error => {
+            console.error("Erreur on joinRoom : ", error);
+            return false;
+        })
 }
 
 function joinRoomPage() {
@@ -124,11 +146,15 @@ function joinRoomPage() {
     document.getElementById('joinRoomButton').addEventListener('click', function() {
         const roomId = document.getElementById('roomIdInput').value;
         if (roomId) {
-            console.log(roomId);
-            joinRoomFetch(roomId);
-        } else {
-            document.getElementById('errorMessage').innerText = "Please enter a valid Room ID.";
-        }
+            joinRoomFetch(roomId).then(isJoined => {
+                if (isJoined == true) {
+                    roomLobby(roomId);
+                }
+                else {
+                    document.getElementById('errorMessage').innerText = "Please enter a valid Room ID.";
+                }
+            })
+        } 
     });
 }
 
@@ -148,13 +174,86 @@ function chooseRoom() {
         .then((response) => response.json())
         .then((data) => {
             console.log(data);
-            joinRoomFetch(data.room_id);
+            if (data.room_id) {
+                joinRoomFetch(data.room_id).then(isJoined => {
+                    if (isJoined === true) {
+                        roomLobby(data.room_id);
+                    }
+                    else {
+                        console.log("Error while trying to join room");
+                    }
+                })
+            }
         });
-    });
+        });
     document.getElementById('join-room').addEventListener("click", function() {
         joinRoomPage();
     });
 
+}
+
+function launchGameVSBot() {
+    fetch(player.createRoom,{
+        method: "POST",
+    })
+    .then((response) => response.json())
+    .then((data) => {
+        console.log(data);
+        if (data.room_id) {
+            joinRoomFetch(data.room_id).then(isJoined => {
+                if (isJoined === true) {
+                    roomLobby(data.room_id);
+                }
+                else {
+                    console.log("Error while trying to join room");
+                }
+            })
+        }
+    });
+    fetch(player.createGameAPI,{
+        method: "POST",
+        body: JSON.stringify({
+        })
+    })
+    .then((response) => response.json())
+    .then((json) => {
+        console.log(json);
+    })
+
+    app.innerHTML = '<p class="center"> PONG </p1> \
+    <br> \
+    <div class= "divToCenter"> \
+    <p id= "score">Score P1 : 0           Score P2 : 0</p>\
+    </div> \
+    <br> \
+    <canvas id="game-field" width = "1280" height = "720"></canvas>';
+
+    let gameState = setInterval(function() {
+    fetch(player.getGameAPI)
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('score').innerText = 'Score P1 : ' + data.score_p1 + '          Score P2 : ' + data.score_p2;
+        const canvas = document.getElementById('game-field');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            const scaleX = canvas.width / data.width;
+            const scaleY = canvas.height / data.height;
+            ctx.canvas.width =  window.innerWidth / 2 ;
+            ctx.canvas.height = window.innerHeight / 2;
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0,0,canvas.width,canvas.height);
+            ctx.fillStyle = 'white';
+            ctx.fillRect(data.p1_pos_x * scaleX, data.p1_pos_y * scaleY, data.width / 128 * scaleX, data.height /7 * scaleY);
+            ctx.fillStyle = 'white';
+            ctx.fillRect(data.p2_pos_x * scaleX, data.p2_pos_y * scaleY, data.width / 128 * scaleX, data.height /7 * scaleY);
+            ctx.fillStyle = 'white';
+            ctx.fillRect(data.ball_pos_x * scaleX, data.ball_pos_y *scaleY, data.width / 128 * scaleX, data.width /128 * scaleX);
+        }
+    })
+    .catch(error => console.error("Erreur lors de la récupération des données :", error));
+    }, 33);
+
+    game();
 }
 
 function chooseEnnemy() {
@@ -167,56 +266,55 @@ function chooseEnnemy() {
     </div>';
 
     document.getElementById('friend').addEventListener("click", function() {
-        launchGameHTML(false);
+        // launchGameVSFriend();
     });
     document.getElementById('bot').addEventListener("click", function() {
-        launchGameHTML(true);
+        launchGameVSBot();
     });
 }
 
-function launchGameHTML(bot_bool) {
+function launchGameHTML() {
     fetch(player.createGameAPI,{
         method: "POST",
         body: JSON.stringify({
-            Bot: bot_bool
         })
     })
     .then((response) => response.json())
     .then((json) => {
         console.log(json);
     })
+
     app.innerHTML = '<p class="center"> PONG </p1> \
-                    <br> \
-                    <div class= "divToCenter"> \
-                    <p id= "score">Score P1 : 0           Score P2 : 0</p>\
-                    </div> \
-                    <br> \
-                    <canvas id="game-field" width = "1280" height = "720"></canvas>';
-    
-    setInterval(function() {
-        fetch(player.getGameAPI)
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('score').innerText = 'Score P1 : ' + data.score_p1 + '          Score P2 : ' + data.score_p2;
-                const canvas = document.getElementById('game-field');
-                if (canvas) {
-                    const ctx = canvas.getContext('2d');
-                    const scaleX = canvas.width / data.width;
-                    const scaleY = canvas.height / data.height;
-                    ctx.canvas.width =  window.innerWidth / 2 ;
-                    ctx.canvas.height = window.innerHeight / 2;
-                    // ctx.clearRect(0,0,canvas.width, canvas.height);
-                    ctx.fillStyle = 'black';
-                    ctx.fillRect(0,0,canvas.width,canvas.height);
-                    ctx.fillStyle = 'white';
-                    ctx.fillRect(data.p1_pos_x * scaleX, data.p1_pos_y * scaleY, data.width / 128 * scaleX, data.height /7 * scaleY);
-                    ctx.fillStyle = 'white';
-                    ctx.fillRect(data.p2_pos_x * scaleX, data.p2_pos_y * scaleY, data.width / 128 * scaleX, data.height /7 * scaleY);
-                    ctx.fillStyle = 'white';
-                    ctx.fillRect(data.ball_pos_x * scaleX, data.ball_pos_y *scaleY, data.width / 128 * scaleX, data.width /128 * scaleX);
-                }
-            })
-            .catch(error => console.error("Erreur lors de la récupération des données :", error));
+    <br> \
+    <div class= "divToCenter"> \
+    <p id= "score">Score P1 : 0           Score P2 : 0</p>\
+    </div> \
+    <br> \
+    <canvas id="game-field" width = "1280" height = "720"></canvas>';
+
+    let gameState = setInterval(function() {
+    fetch(player.getGameAPI)
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('score').innerText = 'Score P1 : ' + data.score_p1 + '          Score P2 : ' + data.score_p2;
+        const canvas = document.getElementById('game-field');
+        if (canvas) {
+            const ctx = canvas.getContext('2d');
+            const scaleX = canvas.width / data.width;
+            const scaleY = canvas.height / data.height;
+            ctx.canvas.width =  window.innerWidth / 2 ;
+            ctx.canvas.height = window.innerHeight / 2;
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0,0,canvas.width,canvas.height);
+            ctx.fillStyle = 'white';
+            ctx.fillRect(data.p1_pos_x * scaleX, data.p1_pos_y * scaleY, data.width / 128 * scaleX, data.height /7 * scaleY);
+            ctx.fillStyle = 'white';
+            ctx.fillRect(data.p2_pos_x * scaleX, data.p2_pos_y * scaleY, data.width / 128 * scaleX, data.height /7 * scaleY);
+            ctx.fillStyle = 'white';
+            ctx.fillRect(data.ball_pos_x * scaleX, data.ball_pos_y *scaleY, data.width / 128 * scaleX, data.width /128 * scaleX);
+        }
+    })
+    .catch(error => console.error("Erreur lors de la récupération des données :", error));
     }, 33);
 
     game();

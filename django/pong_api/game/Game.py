@@ -14,8 +14,10 @@ class Bot:
         self.bool = bot_bool
 
 class Game:
-    def __init__(self,gameID,bot_bool):
+    def __init__(self,gameID ,p1_ID ,p2_ID ,bot_bool):
         self.id = gameID
+        self.p1_id = p1_ID
+        self.p2_id = p2_ID
         self.p1_pos_x = round(PAD_HEIGHT)
         self.p1_pos_y = round(HEIGHT/2-PAD_HEIGHT/2)
         self.p2_pos_x = round( WIDTH - PAD_HEIGHT)
@@ -29,10 +31,9 @@ class Game:
         self.ball_speed_x = DEFAULT_BALL_SPEED
         self.ball_speed_y = DEFAULT_BALL_SPEED
         self.bot = Bot(gameID,bot_bool)
-        game_inputs[gameID] = {
-            "player1_input": "idle",
-            "player2_input": "idle",
-        }
+        game_inputs[gameID] = {}
+        game_inputs[gameID][p1_ID] = "idle"
+        game_inputs[gameID][p2_ID] = "idle"
 
     def reset_ball(self, direction):
         self.ball_pos_x = WIDTH/2
@@ -72,17 +73,17 @@ class Game:
                 self.bot.impact_pos_y = -self.bot.impact_pos_y - PAD_HEIGHT
 
     def handle_player_inputs(self):
-        if game_inputs[self.id]['player1_input'] == 'up' and self.p1_pos_y > 0 :
+        if game_inputs[self.id][self.p1_id] == 'up' and self.p1_pos_y > 0 :
             self.p1_pos_y -= PAD_SPEED
-        elif game_inputs[self.id]['player1_input'] == 'down' and self.p1_pos_y < HEIGHT - PAD_HEIGHT:
+        elif game_inputs[self.id][self.p1_id] == 'down' and self.p1_pos_y < HEIGHT - PAD_HEIGHT:
             self.p1_pos_y += PAD_SPEED
 
         current_time = time.time()
 
         if self.bot.bool == False :
-            if game_inputs[self.id]['player2_input'] == 'up' and self.p2_pos_y - PAD_SPEED > 0 :
+            if game_inputs[self.id][self.p2_id] == 'up' and self.p2_pos_y - PAD_SPEED > 0 :
                 self.p2_pos_y -= PAD_SPEED
-            elif game_inputs[self.id]['player2_input'] == 'down' and self.p2_pos_y + PAD_SPEED < HEIGHT - PAD_HEIGHT:
+            elif game_inputs[self.id][self.p2_id] == 'down' and self.p2_pos_y + PAD_SPEED < HEIGHT - PAD_HEIGHT:
                 self.p2_pos_y += PAD_SPEED
         elif self.bot.bool == True :
             if current_time - self.bot.last_time >= 1:

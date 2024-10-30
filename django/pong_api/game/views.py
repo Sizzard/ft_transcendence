@@ -35,13 +35,17 @@ async def create_game(request, room_id):
         bot_bool = data.get('Bot', False)
     except JSONDecodeError as e:
         bot_bool = False
-    game = Game(room_id, bot_bool)
+    game = Game(room_id ,rooms[str(room_id)].p1 ,rooms[str(room_id)].p2 ,bot_bool)
     games[str(room_id)] = game
 
     asyncio.create_task(game.run())
     
     return JsonResponse({"game_id": room_id}, status=200)
         
+@api_view(['POST'])
+def request_pid(request):
+    newPID = uuid.uuid4()
+    return JsonResponse({"player_id": newPID}, status=200)
 
 @api_view(['POST'])
 def create_room(request):
@@ -49,13 +53,13 @@ def create_room(request):
     return JsonResponse({"room_id": id}, status=200)
 
 @api_view(['POST'])
-def join_room(request, room_id):
+def join_room(request, room_id, player_id):
     if room_id in rooms:
         try:
-            rooms[room_id].add_player("TEST")
+            rooms[room_id].add_player(player_id)
             return JsonResponse({"status": "success", "message": "Player added to the room."}, status=200)
         except ValueError as e:
-            return JsonResponse({"status": "error", "message": str(e)}, status=400)
+            return JsonResponse({"error": str(e)}, status=400)
     else:
         return JsonResponse({"error": "Room ID not found."}, status=404)
 
@@ -65,7 +69,6 @@ def game_room(request, room_id):
 
 @api_view(['GET'])
 def check_room(request, room_id):
-    print("room_id")
     if room_id in rooms:
             if rooms[room_id].is_full() == True:
                 return JsonResponse({"room_status": "OK"}, status=200) 
@@ -75,20 +78,26 @@ def check_room(request, room_id):
         return JsonResponse({"error": "Room ID not found."}, status=404)
 
 @api_view(['POST'])
-def player1_control(request,game_id):
-    serializer = PlayerInputSerializer(data=request.data)
-    if serializer.is_valid():
-        game_inputs[game_id]["player1_input"] = serializer.validated_data['input']
-        return Response({"status": "OK", "game_inputs[game_id][player1_input]": game_inputs[game_id]["player1_input"]})
-    return Response(serializer.errors, status=400)
+def player_control(request,game_id,player_id):
+    if game_id not in games:
+        return JsonResponse({"error": "game not found"}, status=404)
+    if player_id not in game_inputs[game_id]:
+        return JsonResponse({"error": "invalid player id"}, status=404)
 
-@api_view(['POST'])
-def player2_control(request, game_id):
-    serializer = PlayerInputSerializer(data=request.data)
-    if serializer.is_valid():
-        game_inputs[game_id]["player2_input"] = serializer.validated_data['input']
-        return Response({"status": "OK", "game_inputs[game_id][player2_input]": game_inputs[game_id]["player2_input"]})
-    return Response(serializer.errors, status=400)
+    data = request.data
+    player_input = data.get('input')
+    
+    if player_input not in ["up", "down", "idle"]:
+        return JsonResponse({"error": "invalid input"}, status=400)
+    
+    game_inputs[game_id][player_id] = player_input
+    
+    return JsonResponse({
+        "status": "OK", 
+        "game_id": game_id, 
+        player_id: player_input
+    }, status=200)
+    
 
 @api_view(['GET'])
 def get_game_state(request, game_id):
