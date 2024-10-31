@@ -17,7 +17,7 @@ function send_key_event(player, key) {
     .then((json) => console.log(json));
 }
 
-function game() {
+function handleGameInput(playerID = null) {
     window.addEventListener('keydown', (event) => {
         if (event.key === 'ArrowUp' || event.key === 'ArrowDown')
             event.preventDefault();
@@ -35,13 +35,13 @@ function game() {
         }
         if (event.key === 'w' || event.key === 'W') {
             if (keyDownP2 === false){
-                send_key_event(player2, 'up');
+                send_key_event(playerID, 'up');
                 keyDownP2 = true;
             }
         }
         else if (event.key === 's' || event.key === 'S') {
             if (keyDownP2 === false){
-                send_key_event(player2, 'down');
+                send_key_event(playerID, 'down');
                 keyDownP2 = true;
             }
         }
@@ -53,7 +53,7 @@ function game() {
             keyDownP1 = false;
         }
         if (keyDownP2 === true && event.key === 'w' || event.key === 'W' || event.key === 's' || event.key === 'S'){
-            send_key_event(player2, 'idle');
+            send_key_event(playerID, 'idle');
             keyDownP2 = false;
         }
     })    

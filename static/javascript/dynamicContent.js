@@ -39,7 +39,19 @@ class Player {
 }
 
 const player = new Player();
-const player2 = null;
+
+function copyRoomID(room_id) {
+    navigator.clipboard.writeText(room_id).then(() => {
+        const copyMessage = document.getElementById('copyMessage');
+        copyMessage.style.display = "block";
+
+        setTimeout(() => {
+            copyMessage.style.display = "none";
+        }, 2000);
+    }).catch(error => {
+        console.error("Failed to copy Room ID : ", error);
+    });
+}
 
 function displayHome() {
     app.innerHTML ='<h1 class="center">Accueil</h1> \
@@ -74,10 +86,15 @@ function chooseNetwork() {
 }
 
 function roomLobby(room_id) {
-    app.innerHTML = `<div class= "divToCenter"> \
-                        <p>Your Room ID is : ${room_id} </p> \
-                    </div> \
-                    <br> <br> <br> <br> <br>\
+    app.innerHTML = `<div class="divToCenter">
+                        <p>Your Room ID is: <span id="roomIDText">${room_id}</span></p>
+                    </div>
+                    <div class="divToCenter">
+                        <button id="copyButton" class="chooseGameButton" >Copy Room ID</button>
+                        <br>
+                        <p id="copyMessage" style="display: none;">Copied to clipboard!</p>
+                    </div>
+                        <br> <br> <br> <br> <br>\
                     <div class= "divToCenter"> \
                         <p>Waiting for an opponent</p> \
                     </div> \
@@ -91,6 +108,9 @@ function roomLobby(room_id) {
                         <div class="dot dot-b"></div> \
                     </div> \
                     </div>`;
+    document.getElementById('copyButton').addEventListener('click', function() {
+        copyRoomID(room_id);
+    });
 
     let checkRoomInterval = setInterval(function() {
         fetch(player.checkRoom)
@@ -102,14 +122,14 @@ function roomLobby(room_id) {
                     launchGameHTML();
                 }
             })
-            .catch(error => console.error("Erreur lors de la récupération des données :", error));
+            .catch(error => console.error("Error on retrieving data :", error));
     }, 1000);
 
 }
 
-function joinRoomFetch(room_id) {
-    player.setGameID(room_id);
-        return fetch(player.joinRoom, {
+function joinRoomFetch(playerID, room_id) {
+    playerID.setGameID(room_id);
+        return fetch(playerID.joinRoom, {
             method: "POST",
             "room_id": room_id,
         })
@@ -124,7 +144,7 @@ function joinRoomFetch(room_id) {
             }
         })
         .catch(error => {
-            console.error("Erreur on joinRoom : ", error);
+            console.error("Error on joinRoom : ", error);
             return false;
         })
 }
@@ -146,7 +166,7 @@ function joinRoomPage() {
     document.getElementById('joinRoomButton').addEventListener('click', function() {
         const roomId = document.getElementById('roomIdInput').value;
         if (roomId) {
-            joinRoomFetch(roomId).then(isJoined => {
+            joinRoomFetch(player, roomId).then(isJoined => {
                 if (isJoined == true) {
                     roomLobby(roomId);
                 }
@@ -175,7 +195,7 @@ function chooseRoom() {
         .then((data) => {
             console.log(data);
             if (data.room_id) {
-                joinRoomFetch(data.room_id).then(isJoined => {
+                joinRoomFetch(player, data.room_id).then(isJoined => {
                     if (isJoined === true) {
                         roomLobby(data.room_id);
                     }
@@ -192,40 +212,132 @@ function chooseRoom() {
 
 }
 
-function launchGameVSBot() {
-    fetch(player.createRoom,{
-        method: "POST",
-    })
-    .then((response) => response.json())
-    .then((data) => {
-        console.log(data);
-        if (data.room_id) {
-            joinRoomFetch(data.room_id).then(isJoined => {
-                if (isJoined === true) {
-                    roomLobby(data.room_id);
-                }
-                else {
-                    console.log("Error while trying to join room");
-                }
-            })
+async function fetchDataBot(playerID) {
+    try {
+        const response = await fetch(player.createRoom, {
+            method: "POST",
+        });
+        if (!response.ok) {
+            throw new Error(`Can't create room : ${response.status}`);
         }
-    });
-    fetch(player.createGameAPI,{
-        method: "POST",
-        body: JSON.stringify({
+        const data = await response.json();
+        player.setGameID(data.room_id);
+        playerID.setGameID(data.room_id);
+        await fetch(player.joinRoom, {
+            method: "POST",
         })
-    })
-    .then((response) => response.json())
-    .then((json) => {
-        console.log(json);
-    })
+        await fetch(playerID.joinRoom, {
+            method: "POST",
+        })
+        await fetch(player.createGameAPI, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                Bot: true
+            })
+        })
+    }
+    catch (error) {
+        console.log(error);
+    }
+}
 
+async function fetchDataSolo(playerID) {
+    try {
+        const response = await fetch(player.createRoom, {
+            method: "POST",
+        });
+        if (!response.ok) {
+            throw new Error(`Can't create room : ${response.status}`);
+        }
+        const data = await response.json();
+        player.setGameID(data.room_id);
+        playerID.setGameID(data.room_id);
+        await fetch(player.joinRoom, {
+            method: "POST",
+        })
+        await fetch(playerID.joinRoom, {
+            method: "POST",
+        })
+        await fetch(player.createGameAPI, {
+            method: "POST",
+        })
+    }
+    catch (error) {
+        console.log(error);
+    }
+}
+
+
+async function createBotRoom() {
+    const player2 = new Player();
+    try {
+        await fetchDataBot(player2);
+        console.log("Game Created !");
+    } catch (error) {
+        console.log("Erreur creation game bot:", error);
+    }
+    return player2;
+}
+
+async function createSoloRoom() {
+    const player2 = new Player();
+    try {
+        await fetchDataSolo(player2);
+        console.log("Game Created !");
+    } catch (error) {
+        console.log("Erreur creation game bot:", error);
+    }
+    return player2;
+}
+
+function launchGameVSBot() {
+    
+    createBotRoom();
+
+    displayGame();
+
+    handleGameInput();
+}
+
+async function launchGameVSFriend() {
+    
+    const player2 = await createSoloRoom();
+    
+    handleGameInput(player2);
+
+    displayGame();
+}
+
+function chooseEnnemy() {
+    app.innerHTML = '<p class="center"> PONG </p> \
+    <div class= "divToCenter"> \
+        <button class="chooseGameButton" id="friend">Friend</button> \
+    </div> \
+    <div class= "divToCenter"> \
+        <button class="chooseGameButton" id="bot">Bot</button> \
+    </div>';
+
+    document.getElementById('friend').addEventListener("click", function() {
+        launchGameVSFriend();
+    });
+    document.getElementById('bot').addEventListener("click", function() {
+        launchGameVSBot();
+    });
+}
+
+function displayGame() {
     app.innerHTML = '<p class="center"> PONG </p1> \
     <br> \
     <div class= "divToCenter"> \
-    <p id= "score">Score P1 : 0           Score P2 : 0</p>\
+        <p id= "score">Score P1 : 0           Score P2 : 0</p>\
     </div> \
     <br> \
+    <div class= "divToCenter"> \
+        <p id="errorMessage"> </p>\
+    </div> \
     <canvas id="game-field" width = "1280" height = "720"></canvas>';
 
     let gameState = setInterval(function() {
@@ -243,34 +355,20 @@ function launchGameVSBot() {
             ctx.fillStyle = 'black';
             ctx.fillRect(0,0,canvas.width,canvas.height);
             ctx.fillStyle = 'white';
-            ctx.fillRect(data.p1_pos_x * scaleX, data.p1_pos_y * scaleY, data.width / 128 * scaleX, data.height /7 * scaleY);
+            ctx.fillRect(data.p1_pos_x * scaleX, data.p1_pos_y * scaleY, data.width / 128 * scaleX, data.height / 7 * scaleY);
             ctx.fillStyle = 'white';
-            ctx.fillRect(data.p2_pos_x * scaleX, data.p2_pos_y * scaleY, data.width / 128 * scaleX, data.height /7 * scaleY);
+            ctx.fillRect(data.p2_pos_x * scaleX, data.p2_pos_y * scaleY, data.width / 128 * scaleX, data.height / 7 * scaleY);
             ctx.fillStyle = 'white';
             ctx.fillRect(data.ball_pos_x * scaleX, data.ball_pos_y *scaleY, data.width / 128 * scaleX, data.width /128 * scaleX);
+            ctx.fillStyle = 'red';
+            ctx.fillRect(data.p2_pos_x * scaleX, data.impact_pos_y *scaleY, data.width / 128 * scaleX, data.width /128 * scaleX);
         }
     })
-    .catch(error => console.error("Erreur lors de la récupération des données :", error));
+    .catch(error =>  {
+        console.error("Error on retrieving Game Data", error);
+        document.getElementById('errorMessage').innerText = `Error on retrieving Game Data`;
+    });
     }, 33);
-
-    game();
-}
-
-function chooseEnnemy() {
-    app.innerHTML = '<p class="center"> PONG </p> \
-    <div class= "divToCenter"> \
-        <button class="chooseGameButton" id="friend">Friend</button> \
-    </div> \
-    <div class= "divToCenter"> \
-        <button class="chooseGameButton" id="bot">Bot</button> \
-    </div>';
-
-    document.getElementById('friend').addEventListener("click", function() {
-        // launchGameVSFriend();
-    });
-    document.getElementById('bot').addEventListener("click", function() {
-        launchGameVSBot();
-    });
 }
 
 function launchGameHTML() {
@@ -284,40 +382,9 @@ function launchGameHTML() {
         console.log(json);
     })
 
-    app.innerHTML = '<p class="center"> PONG </p1> \
-    <br> \
-    <div class= "divToCenter"> \
-    <p id= "score">Score P1 : 0           Score P2 : 0</p>\
-    </div> \
-    <br> \
-    <canvas id="game-field" width = "1280" height = "720"></canvas>';
+    displayGame();
 
-    let gameState = setInterval(function() {
-    fetch(player.getGameAPI)
-    .then(response => response.json())
-    .then(data => {
-        document.getElementById('score').innerText = 'Score P1 : ' + data.score_p1 + '          Score P2 : ' + data.score_p2;
-        const canvas = document.getElementById('game-field');
-        if (canvas) {
-            const ctx = canvas.getContext('2d');
-            const scaleX = canvas.width / data.width;
-            const scaleY = canvas.height / data.height;
-            ctx.canvas.width =  window.innerWidth / 2 ;
-            ctx.canvas.height = window.innerHeight / 2;
-            ctx.fillStyle = 'black';
-            ctx.fillRect(0,0,canvas.width,canvas.height);
-            ctx.fillStyle = 'white';
-            ctx.fillRect(data.p1_pos_x * scaleX, data.p1_pos_y * scaleY, data.width / 128 * scaleX, data.height /7 * scaleY);
-            ctx.fillStyle = 'white';
-            ctx.fillRect(data.p2_pos_x * scaleX, data.p2_pos_y * scaleY, data.width / 128 * scaleX, data.height /7 * scaleY);
-            ctx.fillStyle = 'white';
-            ctx.fillRect(data.ball_pos_x * scaleX, data.ball_pos_y *scaleY, data.width / 128 * scaleX, data.width /128 * scaleX);
-        }
-    })
-    .catch(error => console.error("Erreur lors de la récupération des données :", error));
-    }, 33);
-
-    game();
+    handleGameInput();
 }
 
 async function renderPage() {

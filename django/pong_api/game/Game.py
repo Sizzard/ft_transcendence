@@ -11,6 +11,7 @@ class Bot:
         self.last_speed = 0
         self.impact_pos_x = 0
         self.impact_pos_y = 0
+        self.passed = False
         self.bool = bot_bool
 
 class Game:
@@ -19,15 +20,15 @@ class Game:
         self.p1_id = p1_ID
         self.p2_id = p2_ID
         self.p1_pos_x = round(PAD_HEIGHT)
-        self.p1_pos_y = round(HEIGHT/2-PAD_HEIGHT/2)
-        self.p2_pos_x = round( WIDTH - PAD_HEIGHT)
-        self.p2_pos_y = round(HEIGHT/2-PAD_HEIGHT/2)
+        self.p1_pos_y = round(HEIGHT / 2 - PAD_HEIGHT / 2)
+        self.p2_pos_x = round(WIDTH - PAD_HEIGHT)
+        self.p2_pos_y = round(HEIGHT / 2 - PAD_HEIGHT / 2)
         self.score_p1 = 0
         self.score_p2 = 0
         self.rebounce = 0
         self.ball_passed = False
-        self.ball_pos_x = WIDTH /2
-        self.ball_pos_y = HEIGHT/2
+        self.ball_pos_x = WIDTH / 2
+        self.ball_pos_y = HEIGHT / 2
         self.ball_speed_x = DEFAULT_BALL_SPEED
         self.ball_speed_y = DEFAULT_BALL_SPEED
         self.bot = Bot(gameID,bot_bool)
@@ -36,8 +37,8 @@ class Game:
         game_inputs[gameID][p2_ID] = "idle"
 
     def reset_ball(self, direction):
-        self.ball_pos_x = WIDTH/2
-        self.ball_pos_y = HEIGHT/2
+        self.ball_pos_x = WIDTH / 2
+        self.ball_pos_y = HEIGHT / 2
         self.ball_passed = False
         self.ball_speed_x = DEFAULT_BALL_SPEED * direction
         self.rebounce = 0
@@ -55,6 +56,8 @@ class Game:
         "score_p2" : self.score_p2,
         "ball_pos_x" : self.ball_pos_x,
         "ball_pos_y" : self.ball_pos_y,
+        "impact_pos_x" : self.bot.impact_pos_x,
+        "impact_pos_y" : self.bot.impact_pos_y,
         }
         return game_state
 
@@ -89,10 +92,15 @@ class Game:
             if current_time - self.bot.last_time >= 1:
                 self.bot_comportement()
                 self.bot.last_time = current_time
-            if self.p2_pos_y > self.bot.impact_pos_y and self.p2_pos_y - PAD_SPEED > 0:
-                self.p2_pos_y -= PAD_SPEED
-            elif self.p2_pos_y < self.bot.impact_pos_y and self.p2_pos_y + PAD_SPEED < HEIGHT - PAD_HEIGHT:
-                self.p2_pos_y += PAD_SPEED
+                self.bot.passed = False
+            if self.bot.passed == False :
+                if self.p2_pos_y > self.bot.impact_pos_y and self.p2_pos_y - PAD_SPEED > 0:
+                    self.p2_pos_y -= PAD_SPEED
+                elif self.p2_pos_y < self.bot.impact_pos_y and self.p2_pos_y + PAD_SPEED < HEIGHT - PAD_HEIGHT:
+                    self.p2_pos_y += PAD_SPEED
+                if self.p2_pos_y > self.bot.impact_pos_y and self.ball_speed_y > 0 or  self.p2_pos_y < self.bot.impact_pos_y and self.ball_speed_y < 0 :
+                    self.bot.passed = True
+
             
     async def calculate_rebounce(self):
             if self.ball_pos_x + self.ball_speed_x < 0:
@@ -120,7 +128,7 @@ class Game:
                 self.rebounce += 1
                 self.ball_speed_x = - (DEFAULT_BALL_SPEED + self.rebounce)
 
-            if self.ball_pos_x < PAD_HEIGHT - self.ball_speed_x or self.ball_pos_x > WIDTH - PAD_HEIGHT - self.ball_speed_x:
+            if self.ball_pos_x < PAD_HEIGHT - self.ball_speed_x or self.ball_pos_x > WIDTH - PAD_HEIGHT - self.ball_speed_x :
                 self.ball_passed = True
 
     async def run(self):
