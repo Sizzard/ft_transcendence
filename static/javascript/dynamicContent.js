@@ -332,7 +332,7 @@ function displayGame() {
     app.innerHTML = '<p class="center"> PONG </p1> \
     <br> \
     <div class= "divToCenter"> \
-        <p id= "score">Score P1 : 0           Score P2 : 0</p>\
+        <p id="score">Score P1 : 0           Score P2 : 0</p>\
     </div> \
     <br> \
     <div class= "divToCenter"> \
@@ -360,8 +360,8 @@ function displayGame() {
             ctx.fillRect(data.p2_pos_x * scaleX, data.p2_pos_y * scaleY, data.width / 128 * scaleX, data.height / 7 * scaleY);
             ctx.fillStyle = 'white';
             ctx.fillRect(data.ball_pos_x * scaleX, data.ball_pos_y *scaleY, data.width / 128 * scaleX, data.width /128 * scaleX);
-            ctx.fillStyle = 'red';
-            ctx.fillRect(data.p2_pos_x * scaleX, data.impact_pos_y *scaleY, data.width / 128 * scaleX, data.width /128 * scaleX);
+            // ctx.fillStyle = 'red';
+            // ctx.fillRect(data.p2_pos_x * scaleX, data.impact_pos_y *scaleY, data.width / 128 * scaleX, data.width /128 * scaleX);
         }
     })
     .catch(error =>  {
