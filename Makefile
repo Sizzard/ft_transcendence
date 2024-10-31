@@ -3,5 +3,5 @@ all :
 
 git :
 	git add .
-	git commit -m "$USER"
+	git commit -m ${USER}
 	git push
