@@ -1,7 +1,5 @@
 const app = document.getElementById("app");
 
-const OGhtml = app.innerHTML;
-
 const ADRESS = "10.31.2.4"
 
 class Player {
@@ -67,24 +65,6 @@ function displayHome() {
     document.getElementById('playLogo').addEventListener("click", chooseNetwork);
 }
 
-function chooseNetwork() {
-    app.innerHTML = '<p class="center"> PONG </p> \
-                    <div class= "divToCenter"> \
-                        <button class="chooseGameButton" id="local">Local</button> \
-                    </div> \
-                    <div class= "divToCenter"> \
-                        <button class="chooseGameButton" id="online">Online</button> \
-                    </div>';
-
-    document.getElementById('local').addEventListener("click", function() {
-        chooseEnnemy();
-    });
-    document.getElementById('online').addEventListener("click", function() {
-        chooseRoom();
-    });
-
-}
-
 function roomLobby(room_id) {
     app.innerHTML = `<div class="divToCenter">
                         <p>Your Room ID is: <span id="roomIDText">${room_id}</span></p>
@@ -140,7 +120,8 @@ function joinRoomFetch(playerID, room_id) {
             }
             else
             {
-                return false;
+                // return false;
+                return true;
             }
         })
         .catch(error => {
@@ -328,6 +309,23 @@ function chooseEnnemy() {
     });
 }
 
+function chooseNetwork() {
+    app.innerHTML = '<p class="center"> PONG </p> \
+                    <div class= "divToCenter"> \
+                        <button class="chooseGameButton" id="local">Local</button> \
+                    </div> \
+                    <div class= "divToCenter"> \
+                        <button class="chooseGameButton" id="online">Online</button> \
+                    </div>';
+
+    document.getElementById('local').addEventListener("click", function() {
+        chooseEnnemy();
+    });
+    document.getElementById('online').addEventListener("click", function() {
+        chooseRoom();
+    });
+}
+
 function displayGame() {
     app.innerHTML = '<p class="center"> PONG </p1> \
     <br> \
@@ -340,7 +338,7 @@ function displayGame() {
     </div> \
     <canvas id="game-field" width = "1280" height = "720"></canvas>';
 
-    let gameState = setInterval(function() {
+    let gameStateInterval = setInterval(function() {
     fetch(player.getGameAPI)
     .then(response => response.json())
     .then(data => {
@@ -362,13 +360,25 @@ function displayGame() {
             ctx.fillRect(data.ball_pos_x * scaleX, data.ball_pos_y *scaleY, data.width / 128 * scaleX, data.width /128 * scaleX);
             // ctx.fillStyle = 'red';
             // ctx.fillRect(data.p2_pos_x * scaleX, data.impact_pos_y * scaleY + (data.height / 7 * scaleX), -1000, data.width /128 * scaleX);
+            if (data.finished === true) {
+                clearInterval(gameStateInterval);
+                ctx.font = "30px serif";
+                ctx.direction = "ltr";
+                ctx.fillStyle = 'white';
+                ctx.textAlign = "center";
+                ctx.fillText("Score :", ctx.canvas.width / 2, ctx.canvas.height / 4)
+                ctx.fillText(`Player 1 : ${data.score_p1}  |  Player 2 : ${data.score_p2}`, ctx.canvas.width / 2, ctx.canvas.height / 3);
+                setTimeout(() => {
+                    displayHome();
+                }, 3000);
+            }
         }
     })
     .catch(error =>  {
-        console.error("Error on retrieving Game Data", error);
         document.getElementById('errorMessage').innerText = `Error on retrieving Game Data`;
     });
     }, 33);
+
 }
 
 function launchGameHTML() {
@@ -386,10 +396,3 @@ function launchGameHTML() {
 
     handleGameInput();
 }
-
-async function renderPage() {
-    document.getElementById('home').addEventListener("click", displayHome);
-    document.getElementById('playLogo').addEventListener("click", chooseNetwork);
-}
-
-window.addEventListener("load", renderPage);

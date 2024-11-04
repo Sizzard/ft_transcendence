@@ -5,17 +5,17 @@ import random
 import time
 
 class Bot:
-    def __init__(self,gameID,bot_bool):
+    def __init__(self,gameID,bot_state):
         self.id = gameID
         self.last_time = time.time()
         self.last_speed = 0
         self.impact_pos_x = 0
         self.impact_pos_y = HEIGHT / 2
         self.passed = False
-        self.bool = bot_bool
+        self.state = bot_state
 
 class Game:
-    def __init__(self,gameID ,p1_ID ,p2_ID ,bot_bool):
+    def __init__(self,gameID ,p1_ID ,p2_ID ,bot_state):
         self.id = gameID
         self.p1_id = p1_ID
         self.p2_id = p2_ID
@@ -31,7 +31,8 @@ class Game:
         self.ball_pos_y = HEIGHT / 2
         self.ball_speed_x = DEFAULT_BALL_SPEED
         self.ball_speed_y = DEFAULT_BALL_SPEED
-        self.bot = Bot(gameID,bot_bool)
+        self.bot = Bot(gameID,bot_state)
+        self.finished = False
         game_inputs[gameID] = {}
         game_inputs[gameID][p1_ID] = "idle"
         game_inputs[gameID][p2_ID] = "idle"
@@ -58,6 +59,7 @@ class Game:
         "ball_pos_y" : self.ball_pos_y,
         "impact_pos_x" : self.bot.impact_pos_x,
         "impact_pos_y" : self.bot.impact_pos_y,
+        "finished" : self.finished,
         }
         return game_state
 
@@ -82,16 +84,18 @@ class Game:
 
         current_time = time.time()
 
-        if self.bot.bool == False :
+        if self.bot.state == False :
             if game_inputs[self.id][self.p2_id] == 'up' and self.p2_pos_y - PAD_SPEED > 0 :
                 self.p2_pos_y -= PAD_SPEED
             elif game_inputs[self.id][self.p2_id] == 'down' and self.p2_pos_y + PAD_SPEED < HEIGHT - PAD_HEIGHT:
                 self.p2_pos_y += PAD_SPEED
-        elif self.bot.bool == True :
+        elif self.bot.state == True :
             if current_time - self.bot.last_time >= 1:
                 self.bot_comportement()
                 self.bot.last_time = current_time
                 self.bot.passed = False
+                if random.randint(1, 10) == 1:
+                    self.bot.impact_pos_y += PAD_HEIGHT / 2
             if self.bot.passed == False :
                 if self.p2_pos_y > self.bot.impact_pos_y and self.p2_pos_y - PAD_SPEED > 0:
                     self.p2_pos_y -= PAD_SPEED
@@ -99,7 +103,6 @@ class Game:
                     self.p2_pos_y += PAD_SPEED
                 if self.p2_pos_y - PAD_SPEED <= self.bot.impact_pos_y <= self.p2_pos_y + PAD_SPEED:
                     self.bot.passed = True
-
             
     async def calculate_rebounce(self):
             if self.ball_pos_x + self.ball_speed_x < 0:
@@ -142,3 +145,4 @@ class Game:
             
             await asyncio.sleep(1/FPS)
         
+        self.finished = True

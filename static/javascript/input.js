@@ -1,10 +1,10 @@
 let keyDownP1 = false;
 let keyDownP2 = false;
 
-function send_key_event(player, key) {
-    if (player == null)
+function send_key_event(playerID, key) {
+    if (playerID == null)
         return;
-    fetch(player.pInput,{
+    fetch(playerID.pInput,{
         method: "POST",
         body: JSON.stringify({
             input: key

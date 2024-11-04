@@ -64,8 +64,8 @@ def join_room(request, room_id, player_id):
         return JsonResponse({"error": "Room ID not found."}, status=404)
 
 
-def game_room(request, room_id):
-    return render(request, 'index.html', {'room_id': room_id})
+# def game_room(request, room_id):
+#     return render(request, 'index.html', {'room_id': room_id})
 
 @api_view(['GET'])
 def check_room(request, room_id):
@@ -103,5 +103,9 @@ def player_control(request,game_id,player_id):
 def get_game_state(request, game_id):
     game = games.get(game_id)
     if game:
-        return JsonResponse(game.get_game_state())
-    return JsonResponse({"error": "game not found"}, status =404)
+        state = game.get_game_state()
+        if state.get("finished") == True :
+            games.pop(game_id)
+            rooms.pop(game_id)
+        return JsonResponse(state, status=200)
+    return JsonResponse({"error": "game not found"}, status=404)

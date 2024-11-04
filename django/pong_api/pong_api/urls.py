@@ -21,6 +21,6 @@ from game import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('game.urls')),
-    path('game/<str:room_id>/', views.game_room, name='game_room'),
+    # path('game/<str:room_id>/', views.game_room, name='game_room'),
 
 ]
