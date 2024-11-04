@@ -10,7 +10,7 @@ class Bot:
         self.last_time = time.time()
         self.last_speed = 0
         self.impact_pos_x = 0
-        self.impact_pos_y = 0
+        self.impact_pos_y = HEIGHT / 2
         self.passed = False
         self.bool = bot_bool
 
@@ -66,9 +66,8 @@ class Game:
         # Balle qui descends
         if self.ball_speed_y > 0 :
             self.bot.impact_pos_y = (self.ball_pos_y - PAD_HEIGHT / 2) + self.ball_speed_y * FPS
-            if self.bot.impact_pos_y > HEIGHT :
-                res = self.bot.impact_pos_y - HEIGHT
-                self.bot.impact_pos_y = HEIGHT - res - PAD_HEIGHT
+            if self.bot.impact_pos_y > HEIGHT - PAD_HEIGHT:
+                self.bot.impact_pos_y = HEIGHT * 2 - self.bot.impact_pos_y - PAD_HEIGHT
         # Balle qui monte
         elif self.ball_speed_y < 0 :
             self.bot.impact_pos_y = (self.ball_pos_y - PAD_HEIGHT / 2) + self.ball_speed_y * FPS
@@ -98,7 +97,7 @@ class Game:
                     self.p2_pos_y -= PAD_SPEED
                 elif self.p2_pos_y < self.bot.impact_pos_y and self.p2_pos_y + PAD_SPEED < HEIGHT - PAD_HEIGHT:
                     self.p2_pos_y += PAD_SPEED
-                if self.p2_pos_y > self.bot.impact_pos_y and self.ball_speed_y > 0 or  self.p2_pos_y < self.bot.impact_pos_y and self.ball_speed_y < 0 :
+                if self.p2_pos_y - PAD_SPEED <= self.bot.impact_pos_y <= self.p2_pos_y + PAD_SPEED:
                     self.bot.passed = True
 
             

@@ -2,7 +2,7 @@ const app = document.getElementById("app");
 
 const OGhtml = app.innerHTML;
 
-const ADRESS = "made-f0Ar1s4.clusters.42paris.fr"
+const ADRESS = "10.31.2.4"
 
 class Player {
     constructor() {
@@ -361,7 +361,7 @@ function displayGame() {
             ctx.fillStyle = 'white';
             ctx.fillRect(data.ball_pos_x * scaleX, data.ball_pos_y *scaleY, data.width / 128 * scaleX, data.width /128 * scaleX);
             // ctx.fillStyle = 'red';
-            // ctx.fillRect(data.p2_pos_x * scaleX, data.impact_pos_y *scaleY, data.width / 128 * scaleX, data.width /128 * scaleX);
+            // ctx.fillRect(data.p2_pos_x * scaleX, data.impact_pos_y * scaleY + (data.height / 7 * scaleX), -1000, data.width /128 * scaleX);
         }
     })
     .catch(error =>  {
