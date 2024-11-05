@@ -55,17 +55,13 @@ def create_room(request):
 @api_view(['POST'])
 def join_room(request, room_id, player_id):
     if room_id in rooms:
-        try:
-            rooms[room_id].add_player(player_id)
-            return JsonResponse({"status": "success", "message": "Player added to the room."}, status=200)
-        except ValueError as e:
-            return JsonResponse({"error": str(e)}, status=400)
+        playerSlot = rooms[room_id].add_player(player_id)
+        if playerSlot == "1" or playerSlot == "2":
+            return JsonResponse({"status": "success", "message": "Player added to the room.", "playerSlot": playerSlot}, status=200)
+        else:
+            return JsonResponse({"status": "success", "message": "Player added to the room.", "playerSlot": playerSlot}, status=206)
     else:
         return JsonResponse({"error": "Room ID not found."}, status=404)
-
-
-# def game_room(request, room_id):
-#     return render(request, 'index.html', {'room_id': room_id})
 
 @api_view(['GET'])
 def check_room(request, room_id):
