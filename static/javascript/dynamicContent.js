@@ -467,11 +467,31 @@ function display3DGame() {
             model.position.y = 10;
             model.position.z = 1280/20;
             model.scale.set(10,10,10);
-            scene.add(gltf.scene);
+            scene.add(model);
 
             const directionalLight = new THREE.DirectionalLight(0xffffff, 2); // Intensité de 2 pour tester
             directionalLight.position.set(camera.position.x,camera.position.y,camera.position.z);
             directionalLight.target = model;
+            scene.add(directionalLight);
+        },
+        undefined,
+        function(error) {
+            console.log(error);
+        }
+    );
+    loader.load(
+        '/static/javascript/Models/sand_landscape/scene.gltf',
+        (gltf) => {
+            const sand_model = gltf.scene;
+            sand_model.position.x = 0;
+            sand_model.position.y = -10;
+            sand_model.position.z = 1280/20;
+            sand_model.scale.set(10,10,10);
+            scene.add(sand_model);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 2); // Intensité de 2 pour tester
+            directionalLight.position.set(camera.position.x,camera.position.y,camera.position.z);
+            directionalLight.target = sand_model;
             scene.add(directionalLight);
         },
         undefined,
@@ -502,7 +522,7 @@ function display3DGame() {
         renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    console.log("Player Slot : " ,player.pSlot);
+    // console.log("Player Slot : " ,player.pSlot);
 
     renderer.setSize(window.innerWidth , window.innerHeight);
 
