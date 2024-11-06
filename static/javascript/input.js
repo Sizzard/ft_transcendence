@@ -13,23 +13,22 @@ function send_key_event(playerID, key) {
             "Content-type": "application/json"
         }
     })
-    .then((response) => response.json())
-    .then((json) => console.log(json));
 }
 
 function handleGameInput(playerID = null) {
     window.addEventListener('keydown', (event) => {
+        // console.log("DEBUG");
         if (event.key === 'ArrowLeft' || event.key === 'ArrowRight')
             event.preventDefault();
         if (event.key === 'ArrowLeft') {
             if (keyDownP1 === false){
-                send_key_event(player, 'up');
+                send_key_event(player, (player.pSlot == "1" ? 'up' : "down"));
                 keyDownP1 = true;
             }
         }
         else if (event.key === 'ArrowRight') {
             if (keyDownP1 === false){
-                send_key_event(player, 'down');
+                send_key_event(player, (player.pSlot == "2" ? 'up' : "down"));
                 keyDownP1 = true;
             }
         }

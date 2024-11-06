@@ -24,6 +24,12 @@ def create_room_func():
     rooms[str(room_id)] = newRoom
     return room_id
 
+async def delete_room_game(game_id):
+    await asyncio.sleep(5)
+    games.pop(game_id)
+    rooms.pop(game_id)
+
+
 # Create your views here.
 @csrf_exempt
 async def create_game(request, room_id):
@@ -40,17 +46,17 @@ async def create_game(request, room_id):
 
     asyncio.create_task(game.run())
     
-    return JsonResponse({"game_id": room_id}, status=200)
+    return JsonResponse({"game_id": room_id}, status=201)
         
 @api_view(['POST'])
 def request_pid(request):
     newPID = uuid.uuid4()
-    return JsonResponse({"player_id": newPID}, status=200)
+    return JsonResponse({"player_id": newPID}, status=201)
 
 @api_view(['POST'])
 def create_room(request):
     id = create_room_func()
-    return JsonResponse({"room_id": id}, status=200)
+    return JsonResponse({"room_id": id}, status=201)
 
 @api_view(['POST'])
 def join_room(request, room_id, player_id):
@@ -101,7 +107,6 @@ def get_game_state(request, game_id):
     if game:
         state = game.get_game_state()
         if state.get("finished") == True :
-            games.pop(game_id)
-            rooms.pop(game_id)
+            delete_room_game(game_id)
         return JsonResponse(state, status=200)
     return JsonResponse({"error": "game not found"}, status=404)

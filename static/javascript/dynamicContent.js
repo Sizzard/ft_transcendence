@@ -40,7 +40,20 @@ class Player {
 
 }
 
-player = new Player();
+let player = new Player();
+
+function stop3DRendering() {
+
+    clearInterval(player.gameStateInterval);
+
+    if (renderer && renderer.domElement) {
+        renderer.setAnimationLoop(null);
+
+        if (document.body.contains(renderer.domElement)) {
+            document.body.removeChild(renderer.domElement);
+        }
+    }
+}
 
 function copyRoomID(room_id) {
     navigator.clipboard.writeText(room_id).then(() => {
@@ -104,7 +117,16 @@ function roomLobby(room_id) {
                 console.log(data.room_status)
                 if (data.room_status === "OK") {
                     clearInterval(checkRoomInterval);
-                    launchGameHTML();
+                    fetch(player.createGameAPI,{
+                        method: "POST",
+                        body: JSON.stringify({
+                        })
+                    })
+                    .then((response) => response.json())
+                    .then((json) => {
+                        console.log(json);
+                    })
+                    launchGameOnline();
                 }
             })
             .catch(error => console.error("Error on retrieving data :", error));
@@ -112,28 +134,26 @@ function roomLobby(room_id) {
 
 }
 
-function joinRoomFetch(playerID, room_id) {
+async function joinRoomFetch(playerID, room_id) {
     playerID.setGameID(room_id);
-        return fetch(playerID.joinRoom, {
+    try {
+        const response = await fetch(playerID.joinRoom, {
             method: "POST",
             "room_id": room_id,
         })
-        .then(response => {
-            if (response.status === 200 || response.status === 206)
-            {
-                console.log(response.PlayerSlot);
-                playerID.pSlot = response.PlayerSlot;
+        if (response.status === 200 || response.status === 206) {
+            const data = await response.json();
+            if (data) {
+                console.log(data.playerSlot);
+                playerID.pSlot = data.playerSlot;
                 return true;
             }
-            else 
-            {
-                return false;
-            }
-        })
-        .catch(error => {
-            console.error("Error on joinRoom : ", error);
-            return false;
-        })
+        }
+        return false;
+    } catch (error) {
+        console.error(error);
+        return false;
+    }
 }
 
 function joinRoomPage() {
@@ -150,10 +170,10 @@ function joinRoomPage() {
                         <p id="errorMessage"> </p>\
                     </div>';
 
-    document.getElementById('joinRoomButton').addEventListener('click', function() {
+    document.getElementById('joinRoomButton').addEventListener('click', async function() {
         const roomId = document.getElementById('roomIdInput').value;
         if (roomId) {
-            joinRoomFetch(player, roomId).then(isJoined => {
+            isJoined = await joinRoomFetch(player, roomId).then(isJoined => {
                 if (isJoined == true) {
                     roomLobby(roomId);
                 }
@@ -284,9 +304,9 @@ function launchGameVSBot() {
     
     createBotRoom();
 
-    display3DGame();
-
     handleGameInput();
+
+    display3DGame();
 }
 
 async function launchGameVSFriend() {
@@ -391,7 +411,7 @@ function chooseNetwork() {
 function display3DGame() {
 
     app.innerHTML =`<div class="divToCenter"> \
-                        <p> Pong !</p> \
+                        <p id="game-title"> Pong !</p> \
                     </div>`;
 
     const scene = new THREE.Scene();
@@ -415,10 +435,21 @@ function display3DGame() {
     const ball_cube = new THREE.Mesh(ball_geometry,purple_material);
     const terrain = new THREE.Mesh(terrain_geometry, orange_material);
     
-    
-    camera.position.x = 720 / 20;
-    camera.position.y = 20;
-    camera.position.z = -10;
+    if (player.pSlot == "1") {
+        camera.position.x = 720 / 20;
+        camera.position.y = 20;
+        camera.position.z = -10;
+    }
+    else if (player.pSlot == "2") {
+        camera.position.x = 720 / 20;
+        camera.position.y = 20;
+        camera.position.z = 138;
+    }
+    else {
+        camera.position.x = 720 / 7;
+        camera.position.y = 20;
+        camera.position.z = 128/2;
+    }
     
     camera.lookAt(720/20, 0, 1280/20);
     
@@ -427,6 +458,31 @@ function display3DGame() {
     terrain.position.y = -1;
     terrain.position.z = 1280/20;
     
+    const loader = new THREE.GLTFLoader();
+    loader.load(
+        '/static/javascript/Models/palm_tree/scene.gltf',
+        (gltf) => {
+            const model = gltf.scene;
+            model.position.x = 0;
+            model.position.y = 10;
+            model.position.z = 1280/20;
+            model.scale.set(10,10,10);
+            scene.add(gltf.scene);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 2); // Intensité de 2 pour tester
+            directionalLight.position.set(camera.position.x,camera.position.y,camera.position.z);
+            directionalLight.target = model;
+            scene.add(directionalLight);
+        },
+        undefined,
+        function(error) {
+            console.log(error);
+        }
+    );
+
+
+    
+
     
     scene.add(p1_cube);
     scene.add(p2_cube);
@@ -443,12 +499,12 @@ function display3DGame() {
         camera.aspect = window.innerWidth / window.innerHeight;
         camera.updateProjectionMatrix();
 
-        renderer.setSize( window.innerWidth, window.innerHeight);
+        renderer.setSize(window.innerWidth, window.innerHeight);
     });
 
-    console.log(player.pSlot);
+    console.log("Player Slot : " ,player.pSlot);
 
-    renderer.setSize( window.innerWidth , window.innerHeight);
+    renderer.setSize(window.innerWidth , window.innerHeight);
 
     player.gameStateInterval = setInterval(function() {
         fetch(player.getGameAPI)
@@ -460,37 +516,41 @@ function display3DGame() {
                 p2_cube.position.x = data.p2_pos_y / 10 + 3.3;
                 ball_cube.position.z = data.ball_pos_x / 10;
                 ball_cube.position.x = data.ball_pos_y / 10;
+
+                if (player.pSlot == "0") {
+                    camera.lookAt( ball_cube.position.x, ball_cube.position.y, ball_cube.position.z);
+                }
+
+                if (data.finished == true) {
+                    clearInterval(player.gameStateInterval);
+
+                    setTimeout(() => {
+                        stop3DRendering();
+                        displayHome();
+                    }, 3000);
+                }
             })
-            .catch(error => console.error("Erreur lors de la récupération des données :", error));
+            .catch(error => {
+
+                clearInterval(player.gameStateInterval);
+                stop3DRendering();
+                displayHome();
+            });
     }, 33);    
 
 }
 
-function launchGameHTML() {
-    fetch(player.createGameAPI,{
-        method: "POST",
-        body: JSON.stringify({
-        })
-    })
-    .then((response) => response.json())
-    .then((json) => {
-        console.log(json);
-    })
+function launchGameOnline() {
+    
+    handleGameInput();
 
     display3DGame();
-
-    handleGameInput();
 }
 
 async function renderPage() {
     document.getElementById('home').addEventListener("click", () => {
 
-        clearInterval(player.gameStateInterval);
-
-        if (renderer && renderer.domElement) {
-            renderer.setAnimationLoop(null);
-            document.body.removeChild(renderer.domElement);
-        }
+        stop3DRendering();
 
         displayHome();
     });
