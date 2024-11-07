@@ -40,7 +40,7 @@ function displayHome() {
                     <h4 class="center">Play :</h4> \
                     <div class="divToCenter"> \
                         <button class="center">\
-                            <img class="imgToCenter" id="playLogo" src="img/playLogo.png" /> \
+                            <img class="imgToCenter" id="playLogo" src="/static/img/playLogo.png" /> \
                         </button> \
                     </div>' ;
     window.history.pushState(null, '', '/static/html/index.html');

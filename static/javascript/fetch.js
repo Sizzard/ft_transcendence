@@ -68,8 +68,8 @@ async function fetchDataBot(player1, player2) {
             method: "POST",
         })
         const roomState = await fetch(player1.checkRoom);
-        if (roomState.room_status == "OK") {
-            console.log("Room State BOT : ", roomState.room_status );
+        console.log("Room State BOT : ", roomState.statusText);
+        if (roomState.statusText == "OK") {
             await fetch(player1.createGameAPI, {
                 method: "POST",
                 headers: {

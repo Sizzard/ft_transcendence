@@ -1,7 +1,86 @@
 import { displayHome } from './dynamicContent.js';
 import { stopHandlingGameInputs } from './input.js';
 
-function display3DGame(player) {
+let football;
+
+function loadFootballNet(loader, scene, camera) {
+    return new Promise((resolve, reject) => {
+        loader.load(
+            '/static/javascript/Models/football_net/scene.gltf',
+            (gltf) => {
+                const footballNet = gltf.scene;
+                footballNet.position.x = 720 / 20;
+                footballNet.position.y = 10;
+                footballNet.position.z = 1280 / 10;
+                footballNet.rotation.y = Math.PI / 180 * 90;
+                footballNet.scale.set(10,10,10);
+                scene.add(footballNet);
+
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+                directionalLight.position.set(camera.position.x,camera.position.y,camera.position.z);
+                directionalLight.target = footballNet;
+                scene.add(directionalLight);
+            },
+            undefined,
+            function(error) {
+                console.log(error);
+            }
+        );
+
+        loader.load(
+            '/static/javascript/Models/football_net/scene.gltf',
+            (gltf) => {
+                const footballNet = gltf.scene;
+                footballNet.position.x = 720 / 20;
+                footballNet.position.y = 10;
+                footballNet.position.z = 0;
+                footballNet.rotation.y = Math.PI / 180 * -90;
+                footballNet.scale.set(10,10,10);
+                scene.add(footballNet);
+
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+                directionalLight.position.set(camera.position.x,camera.position.y,camera.position.z);
+                directionalLight.target = footballNet;
+                scene.add(directionalLight);
+            },
+            undefined,
+            function(error) {
+                console.log(error);
+            }
+        );
+
+        resolve();
+    });
+
+}
+
+function loadFootball(loader, scene, camera) {
+    return new Promise((resolve, reject) => {
+        loader.load(
+            '/static/javascript/Models/football/scene.gltf',
+            (gltf) => {
+                football = gltf.scene;
+                football.position.set(0, 0, 0);
+                scene.add(football);
+
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+                directionalLight.position.set(camera.position.x, camera.position.y, camera.position.z);
+                directionalLight.target = football;
+                scene.add(directionalLight);
+
+                resolve(football);
+            },
+            undefined,
+            (error) => {
+                console.error(error);
+                reject(error);
+            }
+        );
+    });
+}
+
+
+async function display3DGame(player) {
 
     app.innerHTML =`<div class="divToCenter"> \
                         <p id="game-title"> Pong !</p> \
@@ -41,71 +120,9 @@ function display3DGame(player) {
     camera.lookAt(720/20, 0, 1280/20);
     
     const loader = new THREE.GLTFLoader();
-    loader.load(
-        '/static/javascript/Models/football_net/scene.gltf',
-        (gltf) => {
-            const footballNet = gltf.scene;
-            footballNet.position.x = 720 / 20;
-            footballNet.position.y = 10;
-            footballNet.position.z = 1280 / 10;
-            footballNet.rotation.y = Math.PI / 180 * 90;
-            footballNet.scale.set(10,10,10);
-            scene.add(footballNet);
-
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
-            directionalLight.position.set(camera.position.x,camera.position.y,camera.position.z);
-            directionalLight.target = footballNet;
-            scene.add(directionalLight);
-        },
-        undefined,
-        function(error) {
-            console.log(error);
-        }
-    );
-
-    loader.load(
-        '/static/javascript/Models/football_net/scene.gltf',
-        (gltf) => {
-            const footballNet = gltf.scene;
-            footballNet.position.x = 720 / 20;
-            footballNet.position.y = 10;
-            footballNet.position.z = 0;
-            footballNet.rotation.y = Math.PI / 180 * -90;
-            footballNet.scale.set(10,10,10);
-            scene.add(footballNet);
-
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
-            directionalLight.position.set(camera.position.x,camera.position.y,camera.position.z);
-            directionalLight.target = footballNet;
-            scene.add(directionalLight);
-        },
-        undefined,
-        function(error) {
-            console.log(error);
-        }
-    );
-
-    let football;
-
-    loader.load(
-        '/static/javascript/Models/football/scene.gltf',
-        (gltf) => {
-            football = gltf.scene;
-            football.position.x = 0;
-            football.position.y = 0;
-            football.position.z = 0;
-            scene.add(football);
-
-            const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
-            directionalLight.position.set(camera.position.x,camera.position.y,camera.position.z);
-            directionalLight.target = football;
-            scene.add(directionalLight);
-        },
-        undefined,
-        function(error) {
-            console.log(error);
-        }
-    );
+    
+    await loadFootballNet(loader, scene, camera);
+    await loadFootball(loader, scene, camera);
 
     const textureLoader = new THREE.TextureLoader();
     const terrainTexture = textureLoader.load('/static/javascript/Models/terrain.png');
