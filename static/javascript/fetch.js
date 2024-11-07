@@ -1,4 +1,6 @@
 import { Player } from './Player.js';
+import { display3DGame } from './gameLogic.js'
+import { handleGameInput } from './input.js'
 
 export async function joinRoomFetch(player, room_id) {
     player.setGameID(room_id);
@@ -65,15 +67,19 @@ async function fetchDataBot(player1, player2) {
         await fetch(player2.joinRoom, {
             method: "POST",
         })
-        await fetch(player1.createGameAPI, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                Bot: true
+        const roomState = await fetch(player1.checkRoom);
+        if (roomState.room_status == "OK") {
+            console.log("Room State BOT : ", roomState.room_status );
+            await fetch(player1.createGameAPI, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    Bot: true
+                })
             })
-        })
+        }
     }
     catch (error) {
         console.log(error);
@@ -85,7 +91,7 @@ export async function checkRoomAndCreateGame(player) {
         fetch(player.checkRoom)
             .then(response => response.json())
             .then(data => {
-                // console.log(data.room_status)
+                console.log(data.room_status)
                 if (data.room_status === "OK") {
                     clearInterval(checkRoomInterval);
                     fetch(player.createGameAPI,{

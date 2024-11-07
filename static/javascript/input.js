@@ -84,3 +84,5 @@ function handleGameInputRelease(player1, player2, event)  {
     }
 
 }
+
+export { handleGameInput, stopHandlingGameInputs};

@@ -7,7 +7,6 @@ window.renderer = null;
 
 let player1 = new Player();
 
-
 async function loadHTML(filePath) {
     try {
         const response = await fetch(filePath);
@@ -44,7 +43,7 @@ function displayHome() {
                             <img class="imgToCenter" id="playLogo" src="img/playLogo.png" /> \
                         </button> \
                     </div>' ;
-    window.history.pushState(null, '', '/static/index.html');
+    window.history.pushState(null, '', '/static/html/index.html');
     document.getElementById('playLogo').addEventListener("click", networkGameHTML);
 }
 
@@ -144,3 +143,5 @@ async function renderPage() {
 }
 
 window.addEventListener("load", renderPage);
+
+export { displayHome };
