@@ -34,7 +34,7 @@ async def delete_room_game(game_id):
 @csrf_exempt
 async def create_game(request, room_id):
     if room_id in games :
-        return JsonResponse({"error": "Game already created"}, status=400)
+        return JsonResponse({"message": "Game already created"}, status=202)
     bot_bool = False
     try:
         data = json.loads(request.body)
