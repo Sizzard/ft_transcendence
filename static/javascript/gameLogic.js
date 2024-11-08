@@ -1,28 +1,24 @@
 import { displayHome } from './dynamicContent.js';
 import { stopHandlingGameInputs } from './input.js';
+import { GameModels } from './GameModels.js';
 
-let football;
-
-const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-
-function loadFootballNet(loader) {
+function loadFootballNet(loader, GM) {
     return new Promise((resolve) => {
         loader.load(
             '/static/javascript/Models/football_net/scene.gltf',
             (gltf) => {
-                const footballNet = gltf.scene;
-                footballNet.position.x = 720 / 20;
-                footballNet.position.y = 10;
-                footballNet.position.z = 1280 / 10;
-                footballNet.rotation.y = Math.PI / 180 * 90;
-                footballNet.scale.set(10,10,13);
-                scene.add(footballNet);
+                GM.footNet_1 = gltf.scene;
+                GM.footNet_1.position.x = 720 / 20;
+                GM.footNet_1.position.y = 10;
+                GM.footNet_1.position.z = 1280 / 10;
+                GM.footNet_1.rotation.y = Math.PI / 180 * 90;
+                GM.footNet_1.scale.set(10,10,13);
+                GM.scene.add(GM.footNet_1);
 
                 const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
-                directionalLight.position.set(camera.position.x,camera.position.y,camera.position.z);
-                directionalLight.target = footballNet;
-                scene.add(directionalLight);
+                directionalLight.position.set(GM.camera.position.x,GM.camera.position.y,GM.camera.position.z);
+                directionalLight.target = GM.footNet_1;
+                GM.scene.add(directionalLight);
             },
             undefined,
             function(error) {
@@ -33,18 +29,18 @@ function loadFootballNet(loader) {
         loader.load(
             '/static/javascript/Models/football_net/scene.gltf',
             (gltf) => {
-                const footballNet = gltf.scene;
-                footballNet.position.x = 720 / 20;
-                footballNet.position.y = 10;
-                footballNet.position.z = 0;
-                footballNet.rotation.y = Math.PI / 180 * -90;
-                footballNet.scale.set(10,10,13);
-                scene.add(footballNet);
+                GM.footNet_2 = gltf.scene;
+                GM.footNet_2.position.x = 720 / 20;
+                GM.footNet_2.position.y = 10;
+                GM.footNet_2.position.z = 0;
+                GM.footNet_2.rotation.y = Math.PI / 180 * -90;
+                GM.footNet_2.scale.set(10,10,13);
+                GM.scene.add(GM.footNet_2);
 
                 const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
-                directionalLight.position.set(camera.position.x,camera.position.y,camera.position.z);
-                directionalLight.target = footballNet;
-                scene.add(directionalLight);
+                directionalLight.position.set(GM.camera.position.x,GM.camera.position.y,GM.camera.position.z);
+                directionalLight.target = GM.footNet_2;
+                GM.scene.add(directionalLight);
             },
             undefined,
             function(error) {
@@ -57,21 +53,21 @@ function loadFootballNet(loader) {
 
 }
 
-function loadFootball(loader) {
+function loadFootball(loader, GM) {
     return new Promise((resolve, reject) => {
         loader.load(
             '/static/javascript/Models/football/scene.gltf',
             (gltf) => {
-                football = gltf.scene;
-                football.position.set(0, 0, 0);
-                scene.add(football);
+                GM.football = gltf.scene;
+                GM.football.position.set(0, 0, 0);
+                GM.scene.add(GM.football);
 
                 const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
-                directionalLight.position.set(camera.position.x, camera.position.y, camera.position.z);
-                directionalLight.target = football;
-                scene.add(directionalLight);
+                directionalLight.position.set(GM.camera.position.x, GM.camera.position.y, GM.camera.position.z);
+                directionalLight.target = GM.football;
+                GM.scene.add(directionalLight);
 
-                resolve(football);
+                resolve(GM.football);
             },
             undefined,
             (error) => {
@@ -82,52 +78,47 @@ function loadFootball(loader) {
     });
 }
 
-function setCameraPosition(player) {
+function setCameraPosition(player, GM) {
 
     if (player.pSlot == "1") {
-        camera.position.x = 720 / 20;
-        camera.position.y = 20;
-        camera.position.z = -10;
+        GM.camera.position.x = 720 / 20;
+        GM.camera.position.y = 20;
+        GM.camera.position.z = -10;
     }
     else if (player.pSlot == "2") {
-        camera.position.x = 720 / 20;
-        camera.position.y = 20;
-        camera.position.z = 138;
+        GM.camera.position.x = 720 / 20;
+        GM.camera.position.y = 20;
+        GM.camera.position.z = 138;
     }
     else {
-        camera.position.x = 720 / 7;
-        camera.position.y = 20;
-        camera.position.z = 128/2;
+        GM.camera.position.x = 720 / 7;
+        GM.camera.position.y = 20;
+        GM.camera.position.z = 128/2;
     }
     
-    camera.lookAt(720/20, 0, 1280/20);
+    GM.camera.lookAt(720/20, 0, 1280/20);
 }
 
-function loadTerrain() {
+function loadTerrain(GM) {
     return new Promise((resolve) => {
         const textureLoader = new THREE.TextureLoader();
     const terrainTexture = textureLoader.load('/static/javascript/Models/terrain.png');
 
     const material = new THREE.MeshBasicMaterial({ map: terrainTexture});
     const geometry = new THREE.PlaneGeometry(720 / 10, 1280 / 10);
-    const terrain = new THREE.Mesh(geometry, material);
+    GM.terrain = new THREE.Mesh(geometry, material);
 
-    terrain.rotation.x = Math.PI / 180 * -90
+    GM.terrain.rotation.x = Math.PI / 180 * -90
 
-    terrain.position.x = 720/20 - 1;
-    terrain.position.y = -1;
-    terrain.position.z = 1280/20;
+    GM.terrain.position.x = 720/20 - 1;
+    GM.terrain.position.y = -1;
+    GM.terrain.position.z = 1280/20;
 
-    scene.add(terrain);
+    GM.scene.add(GM.terrain);
 
     resolve();
     });
 
-}
-
-function animate() {
-
-    window.renderer.render(scene, camera);
 }
 
 async function display3DGame(player) {
@@ -137,6 +128,8 @@ async function display3DGame(player) {
                     </div>`;
 
     window.renderer = new THREE.WebGLRenderer();
+
+    let GM = new GameModels();
     
     document.body.appendChild(window.renderer.domElement);
     
@@ -144,27 +137,29 @@ async function display3DGame(player) {
 
     const pad_geometry = new THREE.BoxGeometry(720/7/10, 1280/128/10, 1280/128/10);
     
-    const p1_cube = new THREE.Mesh(pad_geometry, black_material);
-    const p2_cube = new THREE.Mesh(pad_geometry, black_material);
+    GM.player_1 = new THREE.Mesh(pad_geometry, black_material);
+    GM.player_2 = new THREE.Mesh(pad_geometry, black_material);
 
-    setCameraPosition(player);
+    setCameraPosition(player, GM);
     
     const loader = new THREE.GLTFLoader();
     
-    await loadFootballNet(loader);
-    await loadFootball(loader);
-    await loadTerrain();
+    await loadFootballNet(loader, GM);
+    await loadFootball(loader, GM);
+    await loadTerrain(GM);
     
-    scene.add(p1_cube);
-    scene.add(p2_cube);
+    GM.scene.add(GM.player_1);
+    GM.scene.add(GM.player_2);
     
-    window.renderer.setAnimationLoop( animate );
+    window.renderer.setAnimationLoop(() => {
+        window.renderer.render(GM.scene, GM.camera);
+    });
     
-    window.renderer.setClearColor(0x95F4FA, 1);
+    window.renderer.setClearColor(0x008080, 1);
 
     window.addEventListener( 'resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
+        GM.camera.aspect = window.innerWidth / window.innerHeight;
+        GM.camera.updateProjectionMatrix();
 
         window.renderer.setSize(window.innerWidth, window.innerHeight);
     });
@@ -175,25 +170,38 @@ async function display3DGame(player) {
         fetch(player.getGameAPI)
             .then(response => response.json())
             .then(data => {
-                p1_cube.position.z =  data.p1_pos_x / 10;
-                p1_cube.position.x = data.p1_pos_y / 10 + 3.3;
-                p2_cube.position.z =  data.p2_pos_x / 10;
-                p2_cube.position.x = data.p2_pos_y / 10 + 3.3;
+                if (data.ball_speed_x  > 0) {
+                    GM.football.rotation.x += 0.1;
+                }
+                else {
+                    GM.football.rotation.x -= 0.1;
+                }
+                if (data.ball_speed_y  > 0) {
+                    GM.football.rotation.y = 0.1;
+                }
+                else {
+                    GM.football.rotation.y = 0.1;
+                }
 
-                football.position.set(data.ball_pos_y / 10, 0 ,data.ball_pos_x / 10)
+                GM.player_1.position.z =  data.p1_pos_x / 10;
+                GM.player_1.position.x = data.p1_pos_y / 10 + 3.3;
+                GM.player_2.position.z =  data.p2_pos_x / 10;
+                GM.player_2.position.x = data.p2_pos_y / 10 + 3.3;
+
+                GM.football.position.set(data.ball_pos_y / 10, 0 ,data.ball_pos_x / 10)
 
                 if (player.pSlot == "0") {
-                    camera.lookAt( football.position.x, football.position.y, football.position.z);
+                    GM.camera.lookAt( GM.football.position.x, GM.football.position.y, GM.football.position.z);
                 }
                 else if (player.pSlot == "1") {
-                    camera.position.x = p1_cube.position.x;
-                    camera.position.z = p1_cube.position.z - 10;
-                    camera.position.y = 4;
+                    GM.camera.position.x = GM.player_1.position.x;
+                    GM.camera.position.z = GM.player_1.position.z - 10;
+                    GM.camera.position.y = 4;
                 }
                 else if (player.pSlot == "2") {
-                    camera.position.x = p2_cube.position.x;
-                    camera.position.z = p2_cube.position.z + 10;
-                    camera.position.y = 4;
+                    GM.camera.position.x = GM.player_2.position.x;
+                    GM.camera.position.z = GM.player_2.position.z + 10;
+                    GM.camera.position.y = 4;
                 }
 
                 if (data.finished == true) {
@@ -217,7 +225,7 @@ async function display3DGame(player) {
 
 }
 
-function stop3DRendering(player) {
+function stop3DRendering(player, GM) {
 
     clearInterval(player.gameStateInterval);
     // console.log("stop3drendering called")
@@ -227,63 +235,9 @@ function stop3DRendering(player) {
         if (document.body.contains(window.renderer.domElement)) {
             // console.log("removechild window.renderer.domElement");
             document.body.removeChild(window.renderer.domElement);
+            GM.destructor();
         }
     }
 }
 
 export { display3DGame, stop3DRendering };
-
-// function display2DGame() {
-//     app.innerHTML = '<p class="center"> PONG </p1> \
-//     <br> \
-//     <div class= "divToCenter"> \
-//         <p id="score">Score P1 : 0           Score P2 : 0</p>\
-//     </div> \
-//     <br> \
-//     <div class= "divToCenter"> \
-//         <p id="errorMessage"> </p>\
-//     </div> \
-//     <canvas id="game-field" width = "1280" height = "720"></canvas>';
-
-//     let gameStateInterval = setInterval(function() {
-//     fetch(player1.getGameAPI)
-//     .then(response => response.json())
-//     .then(data => {
-//         document.getElementById('score').innerText = 'Score P1 : ' + data.score_p1 + '          Score P2 : ' + data.score_p2;
-//         const canvas = document.getElementById('game-field');
-//         if (canvas) {
-//             const ctx = canvas.getContext('2d');
-//             const scaleX = canvas.width / data.width;
-//             const scaleY = canvas.height / data.height;
-//             ctx.canvas.width =  window.innerWidth / 2 ;
-//             ctx.canvas.height = window.innerHeight / 2;
-//             ctx.fillStyle = 'black';
-//             ctx.fillRect(0,0,canvas.width,canvas.height);
-//             ctx.fillStyle = 'white';
-//             ctx.fillRect(data.p1_pos_x * scaleX, data.p1_pos_y * scaleY, data.width / 128 * scaleX, data.height / 7 * scaleY);
-//             ctx.fillStyle = 'white';
-//             ctx.fillRect(data.p2_pos_x * scaleX, data.p2_pos_y * scaleY, data.width / 128 * scaleX, data.height / 7 * scaleY);
-//             ctx.fillStyle = 'white';
-//             ctx.fillRect(data.ball_pos_x * scaleX, data.ball_pos_y *scaleY, data.width / 128 * scaleX, data.width /128 * scaleX);
-//             // ctx.fillStyle = 'red';
-//             // ctx.fillRect(data.p2_pos_x * scaleX, data.impact_pos_y * scaleY + (data.height / 7 * scaleX), -1000, data.width /128 * scaleX);
-//             if (data.finished === true) {
-//                 clearInterval(gameStateInterval);
-//                 ctx.font = "30px serif";
-//                 ctx.direction = "ltr";
-//                 ctx.fillStyle = 'white';
-//                 ctx.textAlign = "center";
-//                 ctx.fillText("Score :", ctx.canvas.width / 2, ctx.canvas.height / 4)
-//                 ctx.fillText(`Player 1 : ${data.score_p1}  |  Player 2 : ${data.score_p2}`, ctx.canvas.width / 2, ctx.canvas.height / 3);
-//                 setTimeout(() => {
-//                     displayHome();
-//                 }, 3000);
-//             }
-//         }
-//     })
-//     .catch(error =>  {
-//         document.getElementById('errorMessage').innerText = `Error on retrieving Game Data`;
-//     });
-//     }, 33);
-
-// }

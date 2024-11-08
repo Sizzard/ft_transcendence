@@ -59,6 +59,8 @@ class Game:
         "ball_pos_y" : self.ball_pos_y,
         "impact_pos_x" : self.bot.impact_pos_x,
         "impact_pos_y" : self.bot.impact_pos_y,
+        "ball_speed_x" : self.ball_speed_x,
+        "ball_speed_y" : self.ball_speed_y,
         "finished" : self.finished,
         }
         return game_state
