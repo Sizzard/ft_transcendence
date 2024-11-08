@@ -3,8 +3,11 @@ import { stopHandlingGameInputs } from './input.js';
 
 let football;
 
-function loadFootballNet(loader, scene, camera) {
-    return new Promise((resolve, reject) => {
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+function loadFootballNet(loader) {
+    return new Promise((resolve) => {
         loader.load(
             '/static/javascript/Models/football_net/scene.gltf',
             (gltf) => {
@@ -13,7 +16,7 @@ function loadFootballNet(loader, scene, camera) {
                 footballNet.position.y = 10;
                 footballNet.position.z = 1280 / 10;
                 footballNet.rotation.y = Math.PI / 180 * 90;
-                footballNet.scale.set(10,10,10);
+                footballNet.scale.set(10,10,13);
                 scene.add(footballNet);
 
                 const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
@@ -35,7 +38,7 @@ function loadFootballNet(loader, scene, camera) {
                 footballNet.position.y = 10;
                 footballNet.position.z = 0;
                 footballNet.rotation.y = Math.PI / 180 * -90;
-                footballNet.scale.set(10,10,10);
+                footballNet.scale.set(10,10,13);
                 scene.add(footballNet);
 
                 const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
@@ -54,7 +57,7 @@ function loadFootballNet(loader, scene, camera) {
 
 }
 
-function loadFootball(loader, scene, camera) {
+function loadFootball(loader) {
     return new Promise((resolve, reject) => {
         loader.load(
             '/static/javascript/Models/football/scene.gltf',
@@ -79,27 +82,7 @@ function loadFootball(loader, scene, camera) {
     });
 }
 
-
-async function display3DGame(player) {
-
-    app.innerHTML =`<div class="divToCenter"> \
-                        <p id="game-title"> Pong !</p> \
-                    </div>`;
-
-    const scene = new THREE.Scene();
-
-    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-    
-    window.renderer = new THREE.WebGLRenderer();
-    
-    document.body.appendChild(window.renderer.domElement);
-    
-    const purple_material = new THREE.MeshBasicMaterial( {color: 'purple'});
-
-    const pad_geometry = new THREE.BoxGeometry(720/7/10, 1280/128/10, 1280/128/10);
-    
-    const p1_cube = new THREE.Mesh(pad_geometry, purple_material);
-    const p2_cube = new THREE.Mesh(pad_geometry, purple_material);
+function setCameraPosition(player) {
 
     if (player.pSlot == "1") {
         camera.position.x = 720 / 20;
@@ -118,13 +101,11 @@ async function display3DGame(player) {
     }
     
     camera.lookAt(720/20, 0, 1280/20);
-    
-    const loader = new THREE.GLTFLoader();
-    
-    await loadFootballNet(loader, scene, camera);
-    await loadFootball(loader, scene, camera);
+}
 
-    const textureLoader = new THREE.TextureLoader();
+function loadTerrain() {
+    return new Promise((resolve) => {
+        const textureLoader = new THREE.TextureLoader();
     const terrainTexture = textureLoader.load('/static/javascript/Models/terrain.png');
 
     const material = new THREE.MeshBasicMaterial({ map: terrainTexture});
@@ -139,12 +120,43 @@ async function display3DGame(player) {
 
     scene.add(terrain);
 
+    resolve();
+    });
+
+}
+
+function animate() {
+
+    window.renderer.render(scene, camera);
+}
+
+async function display3DGame(player) {
+
+    app.innerHTML =`<div class="divToCenter"> \
+                        <p id="game-title"> Pong !</p> \
+                    </div>`;
+
+    window.renderer = new THREE.WebGLRenderer();
+    
+    document.body.appendChild(window.renderer.domElement);
+    
+    const black_material = new THREE.MeshBasicMaterial( {color: 'black'});
+
+    const pad_geometry = new THREE.BoxGeometry(720/7/10, 1280/128/10, 1280/128/10);
+    
+    const p1_cube = new THREE.Mesh(pad_geometry, black_material);
+    const p2_cube = new THREE.Mesh(pad_geometry, black_material);
+
+    setCameraPosition(player);
+    
+    const loader = new THREE.GLTFLoader();
+    
+    await loadFootballNet(loader);
+    await loadFootball(loader);
+    await loadTerrain();
     
     scene.add(p1_cube);
     scene.add(p2_cube);
-    scene.add(terrain);
-    
-    function animate() {window.renderer.render(scene, camera );}
     
     window.renderer.setAnimationLoop( animate );
     
@@ -219,7 +231,7 @@ function stop3DRendering(player) {
     }
 }
 
-export { display3DGame };
+export { display3DGame, stop3DRendering };
 
 // function display2DGame() {
 //     app.innerHTML = '<p class="center"> PONG </p1> \

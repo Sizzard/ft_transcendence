@@ -2,7 +2,7 @@ import { Player } from './Player.js';
 import { display3DGame } from './gameLogic.js'
 import { handleGameInput } from './input.js'
 
-export async function joinRoomFetch(player, room_id) {
+async function joinRoomFetch(player, room_id) {
     player.setGameID(room_id);
     try {
         const response = await fetch(player.joinRoom, {
@@ -60,6 +60,7 @@ async function fetchDataBot(player1, player2) {
         }
         const data = await response.json();
         player1.setGameID(data.room_id);
+        player1.pSlot = "1";
         player2.setGameID(data.room_id);
         await fetch(player1.joinRoom, {
             method: "POST",
@@ -86,7 +87,7 @@ async function fetchDataBot(player1, player2) {
     }
 }
 
-export async function checkRoomAndCreateGame(player) {
+async function checkRoomAndCreateGame(player) {
     let checkRoomInterval = setInterval(function() {
         fetch(player.checkRoom)
             .then(response => response.json())
@@ -132,7 +133,7 @@ async function createSoloRoom(player1) {
     return player2;
 }
 
-export function launchGameVSBot(player) {
+function launchGameVSBot(player) {
     
     createBotRoom(player);
 
@@ -141,7 +142,7 @@ export function launchGameVSBot(player) {
     display3DGame(player);
 }
 
-export async function launchGameVSFriend(player1) {
+async function launchGameVSFriend(player1) {
     
     const player2 = await createSoloRoom(player1);
     
@@ -157,3 +158,5 @@ function launchGameOnline(player) {
 
     display3DGame(player);
 }
+
+export { joinRoomFetch, checkRoomAndCreateGame, launchGameVSBot, launchGameVSFriend };

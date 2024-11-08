@@ -1,7 +1,7 @@
 import { Player } from './Player.js';
 import { joinRoomFetch, launchGameVSFriend, launchGameVSBot ,checkRoomAndCreateGame } from './fetch.js'
-
-const app = document.getElementById("app");
+import { stop3DRendering } from './gameLogic.js';
+import { stopHandlingGameInputs } from './input.js';
 
 window.renderer = null;
 
@@ -13,7 +13,7 @@ async function loadHTML(filePath) {
 
         const html = await response.text();
 
-        app.innerHTML = html;
+        document.getElementById("app").innerHTML = html;
 
     } catch (error) {
         console.error("Failed to charge html file : ", filePath);
@@ -33,18 +33,14 @@ function copyRoomID(room_id) {
     });
 }
 
-function displayHome() {
-    app.innerHTML ='<h1 class="center">Accueil</h1> \
-                    <p class="center">Bienvenue sur la page d\'accueil.</p> \
-                    <br> \
-                    <h4 class="center">Play :</h4> \
-                    <div class="divToCenter"> \
-                        <button class="center">\
-                            <img class="imgToCenter" id="playLogo" src="/static/img/playLogo.png" /> \
-                        </button> \
-                    </div>' ;
+async function displayHome() {
+
+    await loadHTML('/static/html/home.html');
+
     window.history.pushState(null, '', '/static/html/index.html');
+
     document.getElementById('playLogo').addEventListener("click", networkGameHTML);
+
 }
 
 async function roomLobbyGameHTML(room_id) {
