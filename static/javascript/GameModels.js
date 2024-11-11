@@ -8,6 +8,7 @@ export class GameModels {
         this.footNet_1 = null;
         this.footNet_2 = null;
         this.football = null;
+        console.log("GM constructor called");
     }
 
     destructor() {
@@ -19,7 +20,6 @@ export class GameModels {
         this.scene.remove(this.football);
         this.camera = null;
         this.scene = null;
-        
 
     }
 

@@ -54,7 +54,7 @@ function handleGameInputPress(player1, player2, event) {
         }
         else if (event.key === 'ArrowRight') {
             if (keyDownP1 === false) {
-                send_key_event(player1, (player1.pSlot == "2" ? 'up' : "down"));
+                send_key_event(player1, (player1.pSlot == "1" ? 'down' : "up"));
                 keyDownP1 = true;
             }
         }

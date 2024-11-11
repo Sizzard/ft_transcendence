@@ -117,7 +117,7 @@ async function createBotRoom(player1) {
         await fetchDataBot(player1, player2);
         console.log("Game Created !");
     } catch (error) {
-        console.log("Erreur creation game bot:", error);
+        console.error("Erreur creation game bot:", error);
     }
     return player2;
 }

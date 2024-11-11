@@ -1,6 +1,5 @@
 import { Player } from './Player.js';
 import { joinRoomFetch, launchGameVSFriend, launchGameVSBot ,checkRoomAndCreateGame } from './fetch.js'
-import { stop3DRendering } from './gameLogic.js';
 import { stopHandlingGameInputs } from './input.js';
 
 window.renderer = null;
@@ -36,6 +35,8 @@ function copyRoomID(room_id) {
 async function displayHome() {
 
     await loadHTML('/static/html/home.html');
+
+    document.getElementById('home').addEventListener("click", handleHomeButton);
 
     window.history.pushState(null, '', '/static/html/index.html');
 
@@ -99,9 +100,9 @@ function chooseRoomGameHTML() {
             }
         });
         });
-        document.getElementById('join-room').addEventListener("click", function() {
-            joinRoomGameHTML();
-        });
+    document.getElementById('join-room').addEventListener("click", function() {
+        joinRoomGameHTML();
+    });
     });
 }
 
@@ -129,15 +130,16 @@ async function networkGameHTML() {
     });
 }
 
+function handleHomeButton() {
+    stopHandlingGameInputs();
+    displayHome();
+}
+
 async function renderPage() {
-    document.getElementById('home').addEventListener("click", () => {
-        stop3DRendering(player1);
-        stopHandlingGameInputs();
-        displayHome();
-    });
+    document.getElementById('home').addEventListener("click", handleHomeButton);
     document.getElementById('playLogo').addEventListener("click", networkGameHTML);
 }
 
 window.addEventListener("load", renderPage);
 
-export { displayHome };
+export { displayHome,handleHomeButton };
