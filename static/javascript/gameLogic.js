@@ -34,7 +34,7 @@ function loadFootball(loader, GM) {
 function loadFootballCourt(loader, GM) {
     return new Promise((resolve, reject) => {
         loader.load(
-            '/static/javascript/Models/football_court/scene.gltf',
+            '/static/javascript/Models/true_football_court/scene.gltf',
             (gltf) => {
                 GM.footballCourt = gltf.scene;
                 GM.footballCourt.position.set(0, 0, 0);
