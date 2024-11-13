@@ -2,6 +2,7 @@ import { displayHome,handleHomeButton } from './dynamicContent.js';
 import { stopHandlingGameInputs } from './input.js';
 import { GameModels } from './GameModels.js';
 
+let handleResizeFnc;
 
 function loadFootball(loader, GM) {
     return new Promise((resolve, reject) => {
@@ -80,6 +81,31 @@ function setCameraPosition(player, GM) {
     }
 }
 
+function resizeScreenGame(GM) {
+    // console.log("resizing event listener called");
+    // console.log(GM);
+    GM.camera.aspect = window.innerWidth / window.innerHeight;
+    GM.camera.updateProjectionMatrix();
+
+    window.renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+
+function handleResizeGame(GM) {
+
+    handleResizeFnc = resizeScreenGame.bind(null, GM);
+
+    window.addEventListener('resize', handleResizeFnc);
+}
+
+function stopHandlingResizeGame(GM) {
+
+    if (handleResizeFnc) {
+        window.removeEventListener('resize', handleResizeFnc);
+    }
+
+}
+
 async function display3DGame(player) {
 
     app.innerHTML =`<div class="divToCenter"> \
@@ -126,12 +152,7 @@ async function display3DGame(player) {
     
     window.renderer.setClearColor(0x008080, 1);
 
-    window.addEventListener( 'resize', () => {
-        GM.camera.aspect = window.innerWidth / window.innerHeight;
-        GM.camera.updateProjectionMatrix();
-
-        window.renderer.setSize(window.innerWidth, window.innerHeight);
-    });
+    handleResizeGame(GM);
 
     window.renderer.setSize(window.innerWidth , window.innerHeight);
 
@@ -202,6 +223,9 @@ async function display3DGame(player) {
 function stop3DRendering(player, GM) {
 
     clearInterval(player.gameStateInterval);
+    
+    stopHandlingResizeGame(GM);
+
     console.log("stop3drendering called")
     if (window.renderer && window.renderer.domElement) {
         window.renderer.setAnimationLoop(null);
