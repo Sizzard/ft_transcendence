@@ -174,10 +174,9 @@ async function display3DGame(player) {
                 }
 
                 GM.player_1.position.z =  data.p1_pos_x / 10;
-                GM.player_1.position.x = data.p1_pos_y / 10 + 3.3;
+                GM.player_1.position.x = data.p1_pos_y / 10 + 5;
                 GM.player_2.position.z =  data.p2_pos_x / 10;
-                GM.player_2.position.x = data.p2_pos_y / 10 + 3.3;
-
+                GM.player_2.position.x = data.p2_pos_y / 10 + 5
                 GM.football.position.set(data.ball_pos_y / 10, 0 ,data.ball_pos_x / 10)
                 GM.camera.lookAt( GM.football.position.x, GM.football.position.y, GM.football.position.z);
                 
