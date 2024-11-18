@@ -1,4 +1,4 @@
-const ADRESS = "localhost"
+import { ADRESS } from './adress.js'
 
 export class Player {
     constructor() {

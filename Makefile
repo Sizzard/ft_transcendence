@@ -1,4 +1,5 @@
 all :
+	./adress_script.sh
 	docker-compose up --build
 
 nocache :
