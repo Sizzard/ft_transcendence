@@ -41,9 +41,6 @@ async function fetchDataSolo(player1, player2) {
         await fetch(player2.joinRoom, {
             method: "POST",
         })
-        await fetch(player1.createGameAPI, {
-            method: "POST",
-        })
     }
     catch (error) {
         console.log(error);
@@ -67,20 +64,10 @@ async function fetchDataBot(player1, player2) {
         })
         await fetch(player2.joinRoom, {
             method: "POST",
+            body: JSON.stringify({ Bot: true }),
         })
         const roomState = await fetch(player1.checkRoom);
         console.log("Room State BOT : ", roomState.statusText);
-        if (roomState.statusText == "OK") {
-            await fetch(player1.createGameAPI, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-                    Bot: true
-                })
-            })
-        }
     }
     catch (error) {
         console.log(error);
@@ -95,15 +82,6 @@ async function checkRoomAndCreateGame(player) {
                 console.log(data.room_status)
                 if (data.room_status === "OK") {
                     clearInterval(checkRoomInterval);
-                    fetch(player.createGameAPI,{
-                        method: "POST",
-                        body: JSON.stringify({
-                        })
-                    })
-                    .then((response) => response.json())
-                    .then((json) => {
-                        // console.log(json);
-                    })
                     launchGameOnline(player);
                 }
             })

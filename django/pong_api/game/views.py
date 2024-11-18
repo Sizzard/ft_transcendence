@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from daphne.server import twisted_loop
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from .serializers import PlayerInputSerializer
@@ -13,7 +14,8 @@ from json.decoder import JSONDecodeError
 import uuid
 import logging
 
-rooms = {}
+privateRooms = {}
+publicRooms = {}
 games = {}
 
 logger = logging.getLogger("mylogger")
@@ -21,32 +23,34 @@ logger = logging.getLogger("mylogger")
 def create_room_func():
     room_id = uuid.uuid4()
     newRoom = Room(room_id)
-    rooms[str(room_id)] = newRoom
+    publicRooms[str(room_id)] = newRoom
     return room_id
 
 async def delete_room_game(game_id):
     await asyncio.sleep(5)
     games.pop(game_id)
-    rooms.pop(game_id)
+    publicRooms.pop(game_id)
+    privateRooms.pop(game_id)
 
 
 # Create your views here.
-@csrf_exempt
-async def create_game(request, room_id):
+def create_game(request, room_id):
+
     if room_id in games :
         return JsonResponse({"message": "Game already created"}, status=202)
+
     bot_bool = False
     try:
         data = json.loads(request.body)
         bot_bool = data.get('Bot', False)
     except JSONDecodeError as e:
         bot_bool = False
-    game = Game(room_id ,rooms[str(room_id)].p1 ,rooms[str(room_id)].p2 ,bot_bool)
+    game = Game(room_id ,publicRooms[str(room_id)].p1 ,publicRooms[str(room_id)].p2 ,bot_bool)
     games[str(room_id)] = game
 
-    asyncio.create_task(game.run())
-    
-    return JsonResponse({"game_id": room_id}, status=201)
+    twisted_loop.create_task(game.run())
+
+    return JsonResponse({"status": "success", "message": "Player added to the room.", "playerSlot": "2"}, status=200)
         
 @api_view(['POST'])
 def request_pid(request):
@@ -60,10 +64,14 @@ def create_room(request):
 
 @api_view(['POST'])
 def join_room(request, room_id, player_id):
-    if room_id in rooms:
-        playerSlot = rooms[room_id].add_player(player_id)
-        if playerSlot == "1" or playerSlot == "2":
+    if room_id in publicRooms:
+        playerSlot = publicRooms[room_id].add_player(player_id)
+        if playerSlot == "1":
             return JsonResponse({"status": "success", "message": "Player added to the room.", "playerSlot": playerSlot}, status=200)
+        elif playerSlot == "2":
+            create_game(request, room_id)
+            return JsonResponse({"status": "success", "message": "Player added to the room.", "playerSlot": playerSlot}, status=200)
+            
         else:
             return JsonResponse({"status": "success", "message": "Player added to the room.", "playerSlot": playerSlot}, status=206)
     else:
@@ -71,8 +79,8 @@ def join_room(request, room_id, player_id):
 
 @api_view(['GET'])
 def check_room(request, room_id):
-    if room_id in rooms:
-            if rooms[room_id].is_full() == True:
+    if room_id in publicRooms:
+            if publicRooms[room_id].is_full() == True:
                 return JsonResponse({"room_status": "OK"}, status=200) 
             else:
                 return JsonResponse({"room_status": "KO"}, status=200)

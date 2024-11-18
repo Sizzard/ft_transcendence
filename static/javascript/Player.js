@@ -6,7 +6,6 @@ export class Player {
         this.pID = this.requestPID();
         this.pSlot = "0";
         this.gID = "1";
-        this.createGameAPI = this.APIRoot + "create_game/"
         this.getGameAPI =  this.APIRoot + "get_game_state/" + this.gID + "/";
         this.pInput = this.APIRoot + "control/" + this.gID + "/" + this.pID + "/";
         this.createRoom = this.APIRoot + "create_room/";
@@ -31,7 +30,6 @@ export class Player {
         this.pInput = this.APIRoot + "control/" + this.gID + "/" + this.pID + "/";
         this.checkRoom = this.APIRoot + "check_room/" + this.gID + "/";
         this.joinRoom =  this.APIRoot + "join_room/" + this.gID + "/" + this.pID + "/";
-        this.createGameAPI = this.APIRoot + "create_game/" + this.gID + "/";
     }
 
 }
