@@ -12,6 +12,7 @@ export class Player {
         this.checkRoom = this.APIRoot + "check_room/" + this.gID + "/";
         this.joinRoom =  this.APIRoot + "join_room/" + this.gID + "/" + this.pID + "/";
         this.gameStateInterval = 0;
+        this.ws = "ws://" + ADRESS + `:8000/ws/game/${this.gID}/`;
     }
 
     requestPID() {
@@ -30,6 +31,7 @@ export class Player {
         this.pInput = this.APIRoot + "control/" + this.gID + "/" + this.pID + "/";
         this.checkRoom = this.APIRoot + "check_room/" + this.gID + "/";
         this.joinRoom =  this.APIRoot + "join_room/" + this.gID + "/" + this.pID + "/";
+        this.ws = "ws://" + ADRESS + `:8000/ws/game/${this.gID}/`;
     }
 
 }

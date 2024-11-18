@@ -1,5 +1,7 @@
 from .config import HEIGHT, WIDTH, PAD_HEIGHT, PAD_WIDTH, PAD_SPEED, MAX_SCORE, DEFAULT_BALL_SPEED, FPS
 from .shared import game_inputs
+from channels.layers import get_channel_layer
+import json
 import asyncio
 import random
 import time
@@ -33,6 +35,7 @@ class Game:
         self.ball_speed_y = DEFAULT_BALL_SPEED
         self.bot = Bot(gameID,bot_state)
         self.finished = False
+        self.channel_layer = get_channel_layer()
         game_inputs[gameID] = {}
         game_inputs[gameID][p1_ID] = "idle"
         game_inputs[gameID][p2_ID] = "idle"
@@ -64,6 +67,15 @@ class Game:
         "finished" : self.finished,
         }
         return game_state
+
+    async def send_game_state(self):
+        await self.channel_layer.group_send(
+            f"game_{self.id}",
+            {
+                "type": "send_game_state",
+                "game_state": self.get_game_state(),
+            }
+        )
 
     def bot_comportement(self):
         self.bot.impact_pos_x = self.ball_pos_x + self.ball_speed_x * FPS
@@ -142,9 +154,13 @@ class Game:
             
             await self.calculate_rebounce()
 
+
             self.ball_pos_x += self.ball_speed_x
             self.ball_pos_y += self.ball_speed_y
+
+            await self.send_game_state()
             
             await asyncio.sleep(1/FPS)
         
         self.finished = True
+        await self.send_game_state()

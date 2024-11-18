@@ -32,8 +32,6 @@ async def delete_room_game(game_id):
     publicRooms.pop(game_id)
     privateRooms.pop(game_id)
 
-
-# Create your views here.
 def create_game(request, room_id):
 
     if room_id in games :
@@ -51,7 +49,9 @@ def create_game(request, room_id):
     twisted_loop.create_task(game.run())
 
     return JsonResponse({"status": "success", "message": "Player added to the room.", "playerSlot": "2"}, status=200)
-        
+
+# Create your views here.
+
 @api_view(['POST'])
 def request_pid(request):
     newPID = uuid.uuid4()

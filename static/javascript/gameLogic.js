@@ -123,8 +123,6 @@ async function display3DGame(player) {
     
     console.log("display3DGame called");
 
-
-
     document.body.appendChild(window.renderer.domElement);
     
     const black_material = new THREE.MeshBasicMaterial( {color: 'black'});
@@ -156,73 +154,72 @@ async function display3DGame(player) {
 
     window.renderer.setSize(window.innerWidth , window.innerHeight);
 
-    player.gameStateInterval = setInterval(function() {
-        fetch(player.getGameAPI)
-            .then(response => response.json())
-            .then(data => {
-                if (data.ball_speed_x  > 0) {
-                    GM.football.rotation.x += 0.1;
-                }
-                else {
-                    GM.football.rotation.x -= 0.1;
-                }
-                if (data.ball_speed_y  > 0) {
-                    GM.football.rotation.y = 0.1;
-                }
-                else {
-                    GM.football.rotation.y = 0.1;
-                }
+    const ws = new WebSocket(player.ws);
 
-                GM.player_1.position.z =  data.p1_pos_x / 10;
-                GM.player_1.position.x = data.p1_pos_y / 10 + 5;
-                GM.player_2.position.z =  data.p2_pos_x / 10;
-                GM.player_2.position.x = data.p2_pos_y / 10 + 5
-                GM.football.position.set(data.ball_pos_y / 10, 0 ,data.ball_pos_x / 10)
-                GM.camera.lookAt( GM.football.position.x, GM.football.position.y, GM.football.position.z);
-                
-                if (player.pSlot == "1") {
-                    GM.camera.position.x = GM.player_1.position.x;
-                    GM.camera.position.z = GM.player_1.position.z - 10;
-                    GM.camera.position.y = 4;
-                }
-                else if (player.pSlot == "2") {
-                    GM.camera.position.x = GM.player_2.position.x;
-                    GM.camera.position.z = GM.player_2.position.z + 10;
-                    GM.camera.position.y = 4;
-                }
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
 
-                if (data.finished == true) {
-                    clearInterval(player.gameStateInterval);
+        // console.log(`Game State : `, data);
 
-                    stop3DRendering(player, GM);
+        if (data.ball_speed_x  > 0) {
+            GM.football.rotation.x += 0.1;
+        }
+        else {
+            GM.football.rotation.x -= 0.1;
+        }
+        if (data.ball_speed_y  > 0) {
+            GM.football.rotation.y = 0.1;
+        }
+        else {
+            GM.football.rotation.y = 0.1;
+        }
 
-                    if (data.score_p1 > data.score_p2) {
-                        document.getElementById('score').innerText = "Player 1 Wins";
-                    }
-                    else {
-                        document.getElementById('score').innerText = "Player 2 Wins";
-                    }
-                    setTimeout(() => {
-                        stopHandlingGameInputs();
-                        displayHome();
-                    }, 3000);
-                }
-            })
-            .catch(error => {
+        GM.player_1.position.z =  data.p1_pos_x / 10;
+        GM.player_1.position.x = data.p1_pos_y / 10 + 5;
+        GM.player_2.position.z =  data.p2_pos_x / 10;
+        GM.player_2.position.x = data.p2_pos_y / 10 + 5
+        GM.football.position.set(data.ball_pos_y / 10, 0 ,data.ball_pos_x / 10)
+        GM.camera.lookAt( GM.football.position.x, GM.football.position.y, GM.football.position.z);
+        
+        if (player.pSlot == "1") {
+            GM.camera.position.x = GM.player_1.position.x;
+            GM.camera.position.z = GM.player_1.position.z - 10;
+            GM.camera.position.y = 4;
+        }
+        else if (player.pSlot == "2") {
+            GM.camera.position.x = GM.player_2.position.x;
+            GM.camera.position.z = GM.player_2.position.z + 10;
+            GM.camera.position.y = 4;
+        }
+    
+        if (data.finished == true) {
+            stop3DRendering(GM);
 
-                clearInterval(player.gameStateInterval);
-                stop3DRendering(player, GM);
+            if (data.score_p1 > data.score_p2) {
+                document.getElementById('score').innerText = "Player 1 Wins";
+            }
+            else {
+                document.getElementById('score').innerText = "Player 2 Wins";
+            }
+            ws.close();
+            setTimeout(() => {
                 stopHandlingGameInputs();
                 displayHome();
-            });
-    }, 33);    
+            }, 3000);
+        }
+    }
 
+    ws.onopen = () => {
+        console.log("Websocket connection OK");
+    }
+
+    ws.onclose = () => {
+        console.log("Websocket connection KO");
+    }
 }
 
-function stop3DRendering(player, GM) {
+function stop3DRendering(GM) {
 
-    clearInterval(player.gameStateInterval);
-    
     stopHandlingResizeGame(GM);
 
     console.log("stop3drendering called")

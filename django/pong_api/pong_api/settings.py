@@ -25,11 +25,16 @@ SECRET_KEY = 'django-insecure-f@q_c5_gpqr*-fn+#mil2gx_&l7d36ls#-f)m3op1yxa4a^#hk
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.AllowAny',
     ],
+}
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    },
 }
 
 # Application definition
@@ -45,6 +50,7 @@ INSTALLED_APPS = [
     'game',
     'daphne',
     'corsheaders',
+    'room',
 ]
 
 MIDDLEWARE = [
