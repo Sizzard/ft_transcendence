@@ -45,10 +45,21 @@ def create_game(request, room_id):
         bot_bool = False
     game = Game(room_id ,publicRooms[str(room_id)].p1 ,publicRooms[str(room_id)].p2 ,bot_bool)
     games[str(room_id)] = game
+    print(games[str(room_id)])
 
     twisted_loop.create_task(game.run())
 
     return JsonResponse({"status": "success", "message": "Player added to the room.", "playerSlot": "2"}, status=200)
+
+def create_public_room_and_add_player(player_id):
+    id = create_room_func()
+    playerSlot = publicRooms[str(id)].add_player(player_id)
+    return JsonResponse({"status": "success", "room_id": id, "playerSlot": playerSlot}, status=200)
+
+def join_last_public_room(request, room_id, player_id):
+    playerSlot = publicRooms[str(room_id)].add_player(player_id)
+    create_game(request, room_id)
+    return JsonResponse({"status": "success", "room_id": room_id, "playerSlot": playerSlot}, status=200)
 
 # Create your views here.
 
@@ -58,24 +69,16 @@ def request_pid(request):
     return JsonResponse({"player_id": newPID}, status=201)
 
 @api_view(['POST'])
-def create_room(request):
-    id = create_room_func()
-    return JsonResponse({"room_id": id}, status=201)
-
-@api_view(['POST'])
-def join_room(request, room_id, player_id):
-    if room_id in publicRooms:
-        playerSlot = publicRooms[room_id].add_player(player_id)
-        if playerSlot == "1":
-            return JsonResponse({"status": "success", "message": "Player added to the room.", "playerSlot": playerSlot}, status=200)
-        elif playerSlot == "2":
-            create_game(request, room_id)
-            return JsonResponse({"status": "success", "message": "Player added to the room.", "playerSlot": playerSlot}, status=200)
-            
-        else:
-            return JsonResponse({"status": "success", "message": "Player added to the room.", "playerSlot": playerSlot}, status=206)
-    else:
-        return JsonResponse({"error": "Room ID not found."}, status=404)
+def join_public_room(request, player_id):
+    last_key = None
+    if publicRooms:
+        last_key = list(publicRooms.keys())[-1]
+    if not publicRooms: # Empty/No room
+        return create_public_room_and_add_player(player_id)
+    elif publicRooms and publicRooms[str(last_key)].is_full() is True: # Room but full
+        return create_public_room_and_add_player(player_id)
+    else: # Room without P2
+        return join_last_public_room(request, last_key, player_id)
 
 @api_view(['GET'])
 def check_room(request, room_id):
@@ -88,11 +91,17 @@ def check_room(request, room_id):
         return JsonResponse({"error": "Room ID not found."}, status=404)
 
 @api_view(['POST'])
-def player_control(request,game_id,player_id):
-    if game_id not in games:
-        return JsonResponse({"error": "game not found"}, status=404)
-    if player_id not in game_inputs[game_id]:
-        return JsonResponse({"error": "invalid player id"}, status=404)
+def player_control(request,player_id):
+    pid =  None
+    game_id = None
+    for game in games.values():
+        if game.p1_id == player_id or game.p2_id == player_id:
+            pid = player_id
+            game_id = game.id
+            break
+
+    if pid is None:
+        return JsonResponse({"error": "invalid player_id" }, status=404)
 
     data = request.data
     player_input = data.get('input')
@@ -107,14 +116,3 @@ def player_control(request,game_id,player_id):
         "game_id": game_id, 
         player_id: player_input
     }, status=200)
-    
-
-@api_view(['GET'])
-def get_game_state(request, game_id):
-    game = games.get(game_id)
-    if game:
-        state = game.get_game_state()
-        if state.get("finished") == True :
-            delete_room_game(game_id)
-        return JsonResponse(state, status=200)
-    return JsonResponse({"error": "game not found"}, status=404)

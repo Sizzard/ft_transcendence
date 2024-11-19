@@ -1,4 +1,4 @@
-from .config import HEIGHT, WIDTH, PAD_HEIGHT, PAD_WIDTH, PAD_SPEED, MAX_SCORE, DEFAULT_BALL_SPEED, FPS
+from .config import HEIGHT, WIDTH, PAD_HEIGHT, PAD_WIDTH, PAD_SPEED, MAX_SCORE, DEFAULT_BALL_SPEED, FPS, BOT_DIFFICULTY
 from .shared import game_inputs
 from channels.layers import get_channel_layer
 import json
@@ -108,7 +108,7 @@ class Game:
                 self.bot_comportement()
                 self.bot.last_time = current_time
                 self.bot.passed = False
-                if random.randint(1, 10) == 1:
+                if random.randint(1, BOT_DIFFICULTY) == 1:
                     self.bot.impact_pos_y += PAD_HEIGHT / 2
             if self.bot.passed == False :
                 if self.p2_pos_y > self.bot.impact_pos_y and self.p2_pos_y - PAD_SPEED > 0:

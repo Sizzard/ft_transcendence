@@ -1,5 +1,5 @@
 import { Player } from './Player.js';
-import { joinRoomFetch, launchGameVSFriend, launchGameVSBot ,checkRoomAndCreateGame } from './fetch.js'
+import { joinRoomFetch, launchGameVSFriend, launchGameVSBot ,checkRoom } from './fetch.js'
 import { stopHandlingGameInputs } from './input.js';
 
 window.renderer = null;
@@ -19,19 +19,6 @@ async function loadHTML(filePath) {
     }
 }
 
-function copyRoomID(room_id) {
-    navigator.clipboard.writeText(room_id).then(() => {
-        const copyMessage = document.getElementById('copyMessage');
-        copyMessage.style.display = "block";
-
-        setTimeout(() => {
-            copyMessage.style.display = "none";
-        }, 2000);
-    }).catch(error => {
-        console.error("Failed to copy Room ID : ", error);
-    });
-}
-
 async function displayHome() {
 
     await loadHTML('/static/html/home.html');
@@ -44,66 +31,18 @@ async function displayHome() {
 
 }
 
-async function roomLobbyGameHTML(room_id) {
+async function roomLobbyGameHTML() {
 
     await loadHTML('/static/html/roomLobbyGame.html');
 
-    const roomIDText = document.getElementById('roomIDText');
-    if (roomIDText) {
-        roomIDText.textContent = room_id;
+    const isJoined = await joinRoomFetch(player1);
+    // console.log(isJoined);
+    if (isJoined == true) {
+        checkRoom(player1);
     }
-
-    document.getElementById('copyButton').addEventListener('click', function() {
-        copyRoomID(room_id);
-    });
-
-    checkRoomAndCreateGame(player1);
-
-}
-
-function joinRoomGameHTML() {
-
-    loadHTML('/static/html/joinRoomGame.html').then(() => {
-        document.getElementById('joinRoomButton').addEventListener('click', async function() {
-            const roomId = document.getElementById('roomIdInput').value;
-            if (roomId) {
-                const isJoined = await joinRoomFetch(player1, roomId);
-                if (isJoined == true) {
-                    roomLobbyGameHTML(roomId);
-                }
-                else {
-                    document.getElementById('errorMessage').innerText = "Please enter a valid Room ID.";
-                }
-            }
-        });
-    });
-}
-
-function chooseRoomGameHTML() {
-    loadHTML("/static/html/chooseRoomGame.html").then (() => {
-    document.getElementById("create-room").addEventListener("click", function() {
-        fetch(player1.createRoom,{
-            method: "POST",
-        })
-        .then((response) => response.json())
-        .then((data) => {
-            console.log(data);
-            if (data.room_id) {
-                joinRoomFetch(player1, data.room_id).then(isJoined => {
-                    if (isJoined === true) {
-                        roomLobbyGameHTML(data.room_id);
-                    }
-                    else {
-                        console.log("Error while trying to join room");
-                    }
-                })
-            }
-        });
-        });
-    document.getElementById('join-room').addEventListener("click", function() {
-        joinRoomGameHTML();
-    });
-    });
+    else {
+        document.getElementById('errorMessage').innerText = "Please enter a valid Room ID.";
+    }
 }
 
 function localGameHTML() {
@@ -126,7 +65,7 @@ async function networkGameHTML() {
         localGameHTML();
     });
     document.getElementById('online').addEventListener("click", function() {
-        chooseRoomGameHTML();
+        roomLobbyGameHTML();
     });
 }
 
