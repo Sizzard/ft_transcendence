@@ -1,4 +1,4 @@
-from .config import HEIGHT, WIDTH, PAD_HEIGHT, PAD_WIDTH, PAD_SPEED, MAX_SCORE, DEFAULT_BALL_SPEED, FPS
+from .config import HEIGHT, WIDTH, PAD_HEIGHT, PAD_WIDTH, PAD_SPEED, MAX_SCORE, DEFAULT_BALL_SPEED, FPS, BOT_DIFFICULTY
 from .shared import game_inputs
 from channels.layers import get_channel_layer
 import json
@@ -60,8 +60,8 @@ class Game:
         "score_p2" : self.score_p2,
         "ball_pos_x" : self.ball_pos_x,
         "ball_pos_y" : self.ball_pos_y,
-        # "impact_pos_x" : self.bot.impact_pos_x,
-        # "impact_pos_y" : self.bot.impact_pos_y,
+        "impact_pos_x" : self.bot.impact_pos_x,
+        "impact_pos_y" : self.bot.impact_pos_y,
         "ball_speed_x" : self.ball_speed_x,
         "ball_speed_y" : self.ball_speed_y,
         "finished" : self.finished,
@@ -78,14 +78,14 @@ class Game:
         )
 
     def bot_comportement(self):
-        self.bot.impact_pos_x = self.ball_pos_x + self.ball_speed_x * FPS
+        self.impact_pos_x = self.p2_pos_x
         # Balle qui descends
         if self.ball_speed_y > 0 :
             self.bot.impact_pos_y = (self.ball_pos_y - PAD_HEIGHT / 2) + self.ball_speed_y * FPS
             if self.bot.impact_pos_y > HEIGHT - PAD_HEIGHT:
                 self.bot.impact_pos_y = HEIGHT * 2 - self.bot.impact_pos_y - PAD_HEIGHT
         # Balle qui monte
-        elif self.ball_speed_y < 0 :
+        elif self.ball_speed_y <= 0 :
             self.bot.impact_pos_y = (self.ball_pos_y - PAD_HEIGHT / 2) + self.ball_speed_y * FPS
             if self.bot.impact_pos_y < 0 :
                 self.bot.impact_pos_y = -self.bot.impact_pos_y - PAD_HEIGHT
@@ -108,7 +108,7 @@ class Game:
                 self.bot_comportement()
                 self.bot.last_time = current_time
                 self.bot.passed = False
-                if random.randint(1, 10) == 1:
+                if random.randint(1, BOT_DIFFICULTY) == 1:
                     self.bot.impact_pos_y += PAD_HEIGHT / 2
             if self.bot.passed == False :
                 if self.p2_pos_y > self.bot.impact_pos_y and self.p2_pos_y - PAD_SPEED > 0:

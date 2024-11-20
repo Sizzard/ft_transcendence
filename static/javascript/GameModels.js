@@ -8,6 +8,7 @@ export class GameModels {
         this.footNet_1 = null;
         this.footNet_2 = null;
         this.football = null;
+        this.impact = null;
         console.log("GM constructor called");
     }
 

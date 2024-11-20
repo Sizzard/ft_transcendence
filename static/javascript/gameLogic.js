@@ -126,11 +126,14 @@ async function display3DGame(player) {
     document.body.appendChild(window.renderer.domElement);
     
     const black_material = new THREE.MeshBasicMaterial( {color: 'black'});
+    // const red_material = new THREE.MeshBasicMaterial( {color: 'red'});
 
     const pad_geometry = new THREE.BoxGeometry(720/7/10, 1280/128/10, 1280/128/10);
+    // const impact_geometry = new THREE.BoxGeometry(1280/128/10, 1280/128/10, 128);
     
     GM.player_1 = new THREE.Mesh(pad_geometry, black_material);
     GM.player_2 = new THREE.Mesh(pad_geometry, black_material);
+    // GM.impact = new THREE.Mesh(impact_geometry, red_material);
 
     setCameraPosition(player, GM);
     
@@ -141,6 +144,7 @@ async function display3DGame(player) {
     
     GM.scene.add(GM.player_1);
     GM.scene.add(GM.player_2);
+    GM.scene.add(GM.impact)
     
     // console.log("RENDERING !");
 
@@ -159,7 +163,7 @@ async function display3DGame(player) {
     ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
 
-        // console.log(`Game State : `, data);
+        console.log(`Game State : `, data);
 
         if (data.ball_speed_x  > 0) {
             GM.football.rotation.x += 0.1;
@@ -174,10 +178,13 @@ async function display3DGame(player) {
             GM.football.rotation.y = 0.1;
         }
 
-        GM.player_1.position.z =  data.p1_pos_x / 10;
+        // GM.impact.position.z = data.p1_pos_x;
+        // GM.impact.position.x = data.impact_pos_y / 10 + 5;
+
+        GM.player_1.position.z =  data.p1_pos_x / 10 - 1;
         GM.player_1.position.x = data.p1_pos_y / 10 + 5;
-        GM.player_2.position.z =  data.p2_pos_x / 10;
-        GM.player_2.position.x = data.p2_pos_y / 10 + 5
+        GM.player_2.position.z =  data.p2_pos_x / 10 + 1;
+        GM.player_2.position.x = data.p2_pos_y / 10 + 5;
         GM.football.position.set(data.ball_pos_y / 10, 0 ,data.ball_pos_x / 10)
         GM.camera.lookAt( GM.football.position.x, GM.football.position.y, GM.football.position.z);
         
