@@ -108,13 +108,6 @@ function stopHandlingResizeGame(GM) {
 
 async function display3DGame(player) {
 
-    app.innerHTML =`<div class="divToCenter"> \
-                        <p id="game-title"> Pong !</p> \
-                    </div> \
-                    <div class="divToCenter"> \
-                        <p id="score"></p> \
-                    </div>`;
-
     window.renderer = new THREE.WebGLRenderer();
 
     let GM = new GameModels();

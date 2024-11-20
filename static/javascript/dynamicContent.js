@@ -4,7 +4,8 @@ import { stopHandlingGameInputs } from './input.js';
 
 window.renderer = null;
 
-let prevURL = null;  
+let prevURL = null;
+let nextURL = null;
 
 let player1 = new Player();
 
@@ -16,22 +17,31 @@ const routes = {
     "/static/html/chooseRoomGame.html": chooseRoomGameHTML,
     "/static/html/joinRoomGame.html": joinRoomGameHTML,
     "/static/html/roomLobbyGame.html": roomLobbyGameHTML,
+    "/static/html/roomLobbyGame.html": displayGameHTML,
 };
+
+window.onbeforeunload = function() {
+    window.setTimeout(function () {
+        window.location = "/static/html/index.html";
+    }, 0)
+    window.onbeforeunload = null;
+}
 
 window.addEventListener('popstate', async (event) => {
 
-    const path = event.currentTarget.location.pathname;
+    const pathURL = event.currentTarget.location.pathname;
 
     console.log('RETOUR ARRIERE');
     console.log("prevURL :", prevURL)
     console.log(window.location.pathname);
     console.log(event);
 
-    if (prevURL == "/static/html/roomLobbyGame.html") {
-        window.history.pushState(null, '', "/static/html/roomLobbyGame.html");
+    if (prevURL == "/static/html/displayGame.html") {
+        window.history.pushState("/static/html/displayGame.html", '', "/static/html/displayGame.html");
     }
-    else if (routes[path]) {
-        await routes[path]();
+    else if (routes[pathURL]) {
+        await routes[pathURL]();
+        window.history.pushState({path: pathURL}, '', pathURL)
     }
 
 });
@@ -44,7 +54,7 @@ async function loadHTML(filePath) {
 
         document.getElementById("app").innerHTML = html;
 
-        window.history.pushState(null, '', filePath);
+        window.history.pushState(filePath, '', filePath);
 
     } catch (error) {
         console.error("Failed to charge html file : ", filePath);
@@ -160,10 +170,12 @@ async function localGameHTML() {
 
     await loadHTML(url);
 
-    document.getElementById('friend').addEventListener("click", function() {
+    document.getElementById('friend').addEventListener("click", async function() {
+        await displayGameHTML();
         launchGameVSFriend(player1);
     });
-    document.getElementById('bot').addEventListener("click", function() {
+    document.getElementById('bot').addEventListener("click", async function() {
+        await displayGameHTML();
         launchGameVSBot(player1);
     });
 }
@@ -184,6 +196,15 @@ async function networkGameHTML() {
     });
 }
 
+async function displayGameHTML() {
+
+    const url = "/static/html/displayGame.html";
+
+    prevURL = url;
+
+    await loadHTML(url);
+}
+
 function handleHomeButton() {
     stopHandlingGameInputs();
     displayHome();
@@ -196,4 +217,4 @@ async function renderPage() {
 
 window.addEventListener("load", renderPage);
 
-export { displayHome,handleHomeButton };
+export { displayHome,handleHomeButton,displayGameHTML };

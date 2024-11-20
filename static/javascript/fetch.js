@@ -1,6 +1,7 @@
 import { Player } from './Player.js';
 import { display3DGame } from './gameLogic.js'
 import { handleGameInput } from './input.js'
+import { displayGameHTML } from './dynamicContent.js'
 
 async function joinRoomFetch(player, room_id) {
     player.setGameID(room_id);
@@ -130,7 +131,9 @@ async function launchGameVSFriend(player1) {
 }
 
 
-function launchGameOnline(player) {
+async function launchGameOnline(player) {
+
+    await displayGameHTML(); 
     
     handleGameInput(player);
 
