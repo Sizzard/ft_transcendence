@@ -14,8 +14,8 @@ from json.decoder import JSONDecodeError
 import uuid
 import logging
 
-privateRooms = {}
 publicRooms = {}
+privateRooms = {}
 games = {}
 
 logger = logging.getLogger("mylogger")
@@ -23,13 +23,13 @@ logger = logging.getLogger("mylogger")
 def create_room_func():
     room_id = uuid.uuid4()
     newRoom = Room(room_id)
-    publicRooms[str(room_id)] = newRoom
+    privateRooms[str(room_id)] = newRoom
     return room_id
 
 async def delete_room_game(game_id):
     await asyncio.sleep(5)
     games.pop(game_id)
-    publicRooms.pop(game_id)
+    privateRooms.pop(game_id)
     privateRooms.pop(game_id)
 
 def create_game(request, room_id):
@@ -43,7 +43,7 @@ def create_game(request, room_id):
         bot_bool = data.get('Bot', False)
     except JSONDecodeError as e:
         bot_bool = False
-    game = Game(room_id ,publicRooms[str(room_id)].p1 ,publicRooms[str(room_id)].p2 ,bot_bool)
+    game = Game(room_id ,privateRooms[str(room_id)].p1 ,privateRooms[str(room_id)].p2 ,bot_bool)
     games[str(room_id)] = game
 
     twisted_loop.create_task(game.run())
@@ -64,8 +64,8 @@ def create_room(request):
 
 @api_view(['POST'])
 def join_room(request, room_id, player_id):
-    if room_id in publicRooms:
-        playerSlot = publicRooms[room_id].add_player(player_id)
+    if room_id in privateRooms:
+        playerSlot = privateRooms[room_id].add_player(player_id)
         if playerSlot == "1":
             return JsonResponse({"status": "success", "message": "Player added to the room.", "playerSlot": playerSlot}, status=200)
         elif playerSlot == "2":
@@ -79,8 +79,8 @@ def join_room(request, room_id, player_id):
 
 @api_view(['GET'])
 def check_room(request, room_id):
-    if room_id in publicRooms:
-            if publicRooms[room_id].is_full() == True:
+    if room_id in privateRooms:
+            if privateRooms[room_id].is_full() == True:
                 return JsonResponse({"room_status": "OK"}, status=200) 
             else:
                 return JsonResponse({"room_status": "KO"}, status=200)
