@@ -4,7 +4,37 @@ import { stopHandlingGameInputs } from './input.js';
 
 window.renderer = null;
 
+let prevURL = null;  
+
 let player1 = new Player();
+
+const routes = {
+    "/static/html/index.html": displayHome,
+    "/static/html/home.html": displayHome,
+    "/static/html/networkGame.html": networkGameHTML,
+    "/static/html/localGame.html": localGameHTML,
+    "/static/html/chooseRoomGame.html": chooseRoomGameHTML,
+    "/static/html/joinRoomGame.html": joinRoomGameHTML,
+    "/static/html/roomLobbyGame.html": roomLobbyGameHTML,
+};
+
+window.addEventListener('popstate', async (event) => {
+
+    const path = event.currentTarget.location.pathname;
+
+    console.log('RETOUR ARRIERE');
+    console.log("prevURL :", prevURL)
+    console.log(window.location.pathname);
+    console.log(event);
+
+    if (prevURL == "/static/html/roomLobbyGame.html") {
+        window.history.pushState(null, '', "/static/html/roomLobbyGame.html");
+    }
+    else if (routes[path]) {
+        await routes[path]();
+    }
+
+});
 
 async function loadHTML(filePath) {
     try {
@@ -13,6 +43,8 @@ async function loadHTML(filePath) {
         const html = await response.text();
 
         document.getElementById("app").innerHTML = html;
+
+        window.history.pushState(null, '', filePath);
 
     } catch (error) {
         console.error("Failed to charge html file : ", filePath);
@@ -34,11 +66,13 @@ function copyRoomID(room_id) {
 
 async function displayHome() {
 
-    await loadHTML('/static/html/home.html');
+    const url = "/static/html/home.html";
+
+    prevURL = url;
+
+    await loadHTML(url);
 
     document.getElementById('home').addEventListener("click", handleHomeButton);
-
-    window.history.pushState(null, '', '/static/html/index.html');
 
     document.getElementById('playLogo').addEventListener("click", networkGameHTML);
 
@@ -46,7 +80,11 @@ async function displayHome() {
 
 async function roomLobbyGameHTML(room_id) {
 
-    await loadHTML('/static/html/roomLobbyGame.html');
+    const url = "/static/html/roomLobbyGame.html";
+
+    prevURL = url;
+
+    await loadHTML(url);
 
     const roomIDText = document.getElementById('roomIDText');
     if (roomIDText) {
@@ -61,26 +99,35 @@ async function roomLobbyGameHTML(room_id) {
 
 }
 
-function joinRoomGameHTML() {
+async function joinRoomGameHTML() {
+    const url = "/static/html/joinRoomGame.html";
 
-    loadHTML('/static/html/joinRoomGame.html').then(() => {
-        document.getElementById('joinRoomButton').addEventListener('click', async function() {
-            const roomId = document.getElementById('roomIdInput').value;
-            if (roomId) {
-                const isJoined = await joinRoomFetch(player1, roomId);
-                if (isJoined == true) {
-                    roomLobbyGameHTML(roomId);
-                }
-                else {
-                    document.getElementById('errorMessage').innerText = "Please enter a valid Room ID.";
-                }
+    prevURL = url;
+
+    await loadHTML(url);
+    
+    document.getElementById('joinRoomButton').addEventListener('click', async function() {
+        const roomId = document.getElementById('roomIdInput').value;
+        if (roomId) {
+            const isJoined = await joinRoomFetch(player1, roomId);
+            if (isJoined == true) {
+                roomLobbyGameHTML(roomId);
             }
-        });
+            else {
+                document.getElementById('errorMessage').innerText = "Please enter a valid Room ID.";
+            }
+        }
     });
 }
 
-function chooseRoomGameHTML() {
-    loadHTML("/static/html/chooseRoomGame.html").then (() => {
+async function chooseRoomGameHTML() {
+
+    const url = "/static/html/chooseRoomGame.html";
+
+    prevURL = url;
+
+    await loadHTML(url);
+
     document.getElementById("create-room").addEventListener("click", function() {
         fetch(player1.createRoom,{
             method: "POST",
@@ -103,24 +150,31 @@ function chooseRoomGameHTML() {
     document.getElementById('join-room').addEventListener("click", function() {
         joinRoomGameHTML();
     });
-    });
 }
 
-function localGameHTML() {
+async function localGameHTML() {
 
-    loadHTML('/static/html/localGame.html').then(() => {
-        document.getElementById('friend').addEventListener("click", function() {
-            launchGameVSFriend(player1);
-        });
-        document.getElementById('bot').addEventListener("click", function() {
-            launchGameVSBot(player1);
-        });
+    const url = "/static/html/localGame.html";
+
+    prevURL = url;
+
+    await loadHTML(url);
+
+    document.getElementById('friend').addEventListener("click", function() {
+        launchGameVSFriend(player1);
+    });
+    document.getElementById('bot').addEventListener("click", function() {
+        launchGameVSBot(player1);
     });
 }
 
 async function networkGameHTML() {
 
-    await loadHTML('/static/html/networkGame.html');
+    const url = "/static/html/networkGame.html";
+
+    prevURL = url;
+
+    await loadHTML(url);
 
     document.getElementById('local').addEventListener("click", function() {
         localGameHTML();

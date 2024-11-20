@@ -77,7 +77,7 @@ function setCameraPosition(player, GM) {
     else {
         GM.camera.position.x = 720 / 7;
         GM.camera.position.y = 25;
-        GM.camera.position.z = 128/2;
+        GM.camera.position.z = 128 / 2;
     }
 }
 
@@ -163,7 +163,7 @@ async function display3DGame(player) {
     ws.onmessage = (event) => {
         const data = JSON.parse(event.data);
 
-        console.log(`Game State : `, data);
+        // console.log(`Game State : `, data);
 
         if (data.ball_speed_x  > 0) {
             GM.football.rotation.x += 0.1;
