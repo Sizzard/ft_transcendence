@@ -32,7 +32,7 @@ class Game:
         self.ball_pos_x = WIDTH / 2
         self.ball_pos_y = HEIGHT / 2
         self.ball_speed_x = DEFAULT_BALL_SPEED
-        self.ball_speed_y = DEFAULT_BALL_SPEED
+        self.ball_speed_y = DEFAULT_BALL_SPEED / 2
         self.bot = Bot(gameID,bot_state)
         self.finished = False
         self.channel_layer = get_channel_layer()
@@ -78,17 +78,17 @@ class Game:
         )
 
     def bot_comportement(self):
-        self.impact_pos_x = self.p2_pos_x
-        # Balle qui descends
-        if self.ball_speed_y > 0 :
-            self.bot.impact_pos_y = (self.ball_pos_y - PAD_HEIGHT / 2) + self.ball_speed_y * FPS
-            if self.bot.impact_pos_y > HEIGHT - PAD_HEIGHT:
-                self.bot.impact_pos_y = HEIGHT * 2 - self.bot.impact_pos_y - PAD_HEIGHT
-        # Balle qui monte
-        elif self.ball_speed_y <= 0 :
-            self.bot.impact_pos_y = (self.ball_pos_y - PAD_HEIGHT / 2) + self.ball_speed_y * FPS
-            if self.bot.impact_pos_y < 0 :
-                self.bot.impact_pos_y = -self.bot.impact_pos_y - PAD_HEIGHT
+        self.bot.impact_pos_x = self.p2_pos_x
+        t = (self.bot.impact_pos_x - self.ball_pos_x) / self.ball_speed_x
+        if t > 0:
+            self.bot.impact_pos_y = (self.ball_pos_y + self.ball_speed_y * t)
+            if self.bot.impact_pos_y < 0:
+                self.bot.impact_pos_y = -self.bot.impact_pos_y
+            elif self.bot.impact_pos_y >= HEIGHT:
+                self.bot.impact_pos_y = (HEIGHT - 10) * 2 - self.bot.impact_pos_y
+        else:
+            self.bot.impact_pos_y = self.ball_pos_y + self.ball_speed_y * 60
+        self.bot.impact_pos_y -= PAD_HEIGHT / 2
 
     def handle_player_inputs(self):
         if game_inputs[self.id][self.p1_id] == 'up' and self.p1_pos_y > 0 :
@@ -109,7 +109,7 @@ class Game:
                 self.bot.last_time = current_time
                 self.bot.passed = False
                 if random.randint(1, BOT_DIFFICULTY) == 1:
-                    self.bot.impact_pos_y += PAD_HEIGHT / 2
+                    self.bot.impact_pos_y += PAD_HEIGHT
             if self.bot.passed == False :
                 if self.p2_pos_y > self.bot.impact_pos_y and self.p2_pos_y - PAD_SPEED > 0:
                     self.p2_pos_y -= PAD_SPEED

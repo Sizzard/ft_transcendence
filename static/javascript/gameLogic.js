@@ -126,10 +126,10 @@ async function display3DGame(player) {
     document.body.appendChild(window.renderer.domElement);
     
     const black_material = new THREE.MeshBasicMaterial( {color: 'black'});
-    // const red_material = new THREE.MeshBasicMaterial( {color: 'red'});
+    const red_material = new THREE.MeshBasicMaterial( {color: 'red'});
 
     const pad_geometry = new THREE.BoxGeometry(720/7/10, 1280/128/10, 1280/128/10);
-    // const impact_geometry = new THREE.BoxGeometry(1280/128/10, 1280/128/10, 128);
+    const impact_geometry = new THREE.BoxGeometry(1280/128/10, 1280/128/10, 128);
     
     GM.player_1 = new THREE.Mesh(pad_geometry, black_material);
     GM.player_2 = new THREE.Mesh(pad_geometry, black_material);
@@ -144,7 +144,7 @@ async function display3DGame(player) {
     
     GM.scene.add(GM.player_1);
     GM.scene.add(GM.player_2);
-    GM.scene.add(GM.impact)
+    // GM.scene.add(GM.impact);
     
     // console.log("RENDERING !");
 
@@ -209,10 +209,6 @@ async function display3DGame(player) {
                 document.getElementById('score').innerText = "Player 2 Wins";
             }
             ws.close();
-            setTimeout(() => {
-                stopHandlingGameInputs();
-                displayHome();
-            }, 3000);
         }
     }
 
@@ -222,6 +218,10 @@ async function display3DGame(player) {
 
     ws.onclose = () => {
         console.log("Websocket connection KO");
+        setTimeout(() => {
+            stopHandlingGameInputs();
+            displayHome();
+        }, 3000);
     }
 }
 
