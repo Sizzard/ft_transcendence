@@ -1,17 +1,13 @@
 all :
-	./adress_script.sh
-	docker-compose up --build
+	make -C docker_srcs
 
 nocache :
-	docker-compose build --no-cache
-	docker-compose up
+	make nocache -C docker_srcs
 
 fclean :
-	docker image prune -af
+	make fclean -C docker_srcs
 
 re : fclean nocache
 
 git :
-	git add .
-	git commit -m ${USER}
-	git push
+	make git -C docker_srcs
