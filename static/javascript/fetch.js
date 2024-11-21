@@ -15,13 +15,15 @@ async function joinRoomFetch(player, room_id) {
             if (data) {
                 // console.log(data.playerSlot);
                 player.pSlot = data.playerSlot;
-                return true;
+                return response.status;
             }
         }
-        return false;
+        else{
+            throw response.status
+        }
     } catch (error) {
-        console.error(error);
-        return false;
+        console.error(`Can't join room, Error code : ${error}`);
+        return error;
     }
 }
 
@@ -112,6 +114,20 @@ async function createSoloRoom(player1) {
     return player2;
 }
 
+async function createRoom(player1) {
+
+    const response = await fetch(player1.createRoom,{
+        method: "POST",
+    });
+    if (response.status != 201) {
+        return response.status;
+    }
+    const data = await response.json();
+    player1.setGameID(data.room_id);
+    console.log(player1);
+    return response.status;
+}
+
 function launchGameVSBot(player) {
     
     createBotRoom(player);
@@ -140,4 +156,4 @@ async function launchGameOnline(player) {
     display3DGame(player);
 }
 
-export { joinRoomFetch, checkRoomAndCreateGame, launchGameVSBot, launchGameVSFriend };
+export { joinRoomFetch, checkRoomAndCreateGame, createRoom, launchGameVSBot, launchGameVSFriend };

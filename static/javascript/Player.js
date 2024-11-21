@@ -7,9 +7,7 @@ export class Player {
         this.pSlot = "0";
         this.gID = "1";
         this.getGameAPI =  this.APIRoot + "get_game_state/" + this.gID + "/";
-        this.createRoom = this.APIRoot + "create_room/";
         this.checkRoom = this.APIRoot + "check_room/" + this.gID + "/";
-        this.gameStateInterval = 0;
         this.ws = "ws://" + ADRESS + `:8000/ws/game/${this.gID}/`;
     }
 
@@ -22,7 +20,8 @@ export class Player {
         this.pID = data.player_id;
         this.pInput = this.APIRoot + "control/" + this.gID + "/" + this.pID + "/";
         this.joinRoom =  this.APIRoot + "join_room/" + this.gID + "/" + this.pID + "/";
-        });
+        this.createRoom = this.APIRoot + "create_room/" + this.pID + "/";
+    });
     }
 
     setGameID(gameID) {

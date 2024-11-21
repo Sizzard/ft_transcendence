@@ -20,6 +20,19 @@ games = {}
 
 logger = logging.getLogger("mylogger")
 
+def is_already_in_a_room(player_id):
+    if privateRooms:
+        for room in privateRooms.values():
+            print(room.p1)
+            print(room.p2)
+            if room.p1 == player_id or room.p2 == player_id:
+                return True
+    if publicRooms:
+        for room in publicRooms.values():
+            if room.p1 == player_id or room.p2 == player_id:
+                return True
+    return False
+
 def create_room_func():
     room_id = uuid.uuid4()
     newRoom = Room(room_id)
@@ -58,12 +71,16 @@ def request_pid(request):
     return JsonResponse({"player_id": newPID}, status=201)
 
 @api_view(['POST'])
-def create_room(request):
+def create_room(request, player_id):
+    if (is_already_in_a_room(player_id)):
+        return JsonResponse({"error": "Player already in a room."}, status=400)
     id = create_room_func()
     return JsonResponse({"room_id": id}, status=201)
 
 @api_view(['POST'])
 def join_room(request, room_id, player_id):
+    if (is_already_in_a_room(player_id)):
+        return JsonResponse({"error": "Player already in a room."}, status=400)
     if room_id in privateRooms:
         playerSlot = privateRooms[room_id].add_player(player_id)
         if playerSlot == "1":

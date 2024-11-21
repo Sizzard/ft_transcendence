@@ -1,5 +1,5 @@
 import { Player } from './Player.js';
-import { joinRoomFetch, launchGameVSFriend, launchGameVSBot ,checkRoomAndCreateGame } from './fetch.js'
+import { joinRoomFetch, launchGameVSFriend, launchGameVSBot ,checkRoomAndCreateGame, createRoom } from './fetch.js'
 import { stopHandlingGameInputs } from './input.js';
 
 window.renderer = null;
@@ -31,10 +31,10 @@ window.addEventListener('popstate', async (event) => {
 
     const pathURL = event.currentTarget.location.pathname;
 
-    console.log('RETOUR ARRIERE');
-    console.log("prevURL :", prevURL)
-    console.log(window.location.pathname);
-    console.log(event);
+    // console.log('RETOUR ARRIERE');
+    // console.log("prevURL :", prevURL)
+    // console.log(window.location.pathname);
+    // console.log(event);
 
     if (prevURL == "/static/html/displayGame.html") {
         window.history.pushState("/static/html/displayGame.html", '', "/static/html/displayGame.html");
@@ -120,11 +120,15 @@ async function joinRoomGameHTML() {
         const roomId = document.getElementById('roomIdInput').value;
         if (roomId) {
             const isJoined = await joinRoomFetch(player1, roomId);
-            if (isJoined == true) {
+            console.log(isJoined);
+            if (isJoined == 200 || isJoined == 201 || isJoined == 206) {
                 roomLobbyGameHTML(roomId);
             }
-            else {
+            else if (isJoined == 404) {
                 document.getElementById('errorMessage').innerText = "Please enter a valid Room ID.";
+            }
+            else if (isJoined == 400) {
+                document.getElementById('errorMessage').innerText = "You are already in a Room.";
             }
         }
     });
@@ -138,25 +142,22 @@ async function chooseRoomGameHTML() {
 
     await loadHTML(url);
 
-    document.getElementById("create-room").addEventListener("click", function() {
-        fetch(player1.createRoom,{
-            method: "POST",
-        })
-        .then((response) => response.json())
-        .then((data) => {
-            console.log(data);
-            if (data.room_id) {
-                joinRoomFetch(player1, data.room_id).then(isJoined => {
-                    if (isJoined === true) {
-                        roomLobbyGameHTML(data.room_id);
-                    }
-                    else {
-                        console.log("Error while trying to join room");
-                    }
-                })
-            }
-        });
-        });
+    document.getElementById("create-room").addEventListener("click", async () => {
+        const isCreated = await createRoom(player1);
+        console.log(isCreated);
+        if (isCreated == 201 || isCreated == 206) {
+            const isJoined = await joinRoomFetch(player1, player1.gID);
+            console.log(isJoined);
+                if (isJoined == 200 || isJoined == 206) 
+                    roomLobbyGameHTML(player1.gID);
+        }
+        else {
+            document.getElementById('errorMessage').innerText = "Player already in a Room.";
+            setTimeout(() => {
+                document.getElementById('errorMessage').innerText = ""
+            }, 2000);
+        }
+    });
     document.getElementById('join-room').addEventListener("click", function() {
         joinRoomGameHTML();
     });
